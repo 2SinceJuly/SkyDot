@@ -1,0 +1,38 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="146" y1="96" x2="878" y2="928" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.55" stop-color="#F4F8F5"/>
+      <stop offset="1" stop-color="#E3EEE7"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(512 420) rotate(90) scale(470)">
+      <stop stop-color="#A8D4BC" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#A8D4BC" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shell" x1="300" y1="300" x2="720" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DFF0E6"/>
+      <stop offset="0.5" stop-color="#C3DFD0"/>
+      <stop offset="1" stop-color="#A5CBBA"/>
+    </linearGradient>
+    <linearGradient id="eye" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#2E4A3A"/>
+      <stop offset="1" stop-color="#1F3529"/>
+    </linearGradient>
+    <filter id="softShadow" x="-25%" y="-25%" width="150%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#3F6350" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="232" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="232" fill="url(#bgGlow)"/>
+  <g filter="url(#softShadow)" fill="url(#shell)">
+    <circle cx="286" cy="578" r="152"/>
+    <circle cx="486" cy="430" r="224"/>
+    <circle cx="704" cy="566" r="166"/>
+    <rect x="286" y="562" width="418" height="168"/>
+  </g>
+  <!-- Two eyes only: at 16px a face with a mouth turns to mush. -->
+  <g fill="url(#eye)">
+    <rect x="382" y="486" width="74" height="108" rx="37"/>
+    <rect x="516" y="486" width="74" height="108" rx="37"/>
+  </g>
+</svg>

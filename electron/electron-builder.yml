@@ -1,0 +1,35 @@
+appId: cc.skydot.desktop
+productName: SkyDot
+copyright: Copyright © 2026 SkyDot contributors
+electronVersion: 39.8.10
+icon: assets/skydot-icon.png
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - assets/**/*
+  - package.json
+  - '!**/*.map'
+
+extraMetadata:
+  main: dist/main.cjs
+
+asar: true
+
+mac:
+  category: public.app-category.productivity
+  icon: assets/skydot.icns
+  target:
+    - dmg
+    - zip
+
+win:
+  target:
+    - nsis
+
+linux:
+  category: Utility
+  target:
+    - AppImage
