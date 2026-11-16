@@ -47,6 +47,9 @@ async function prepareHarness(
         : { json: { options: ['local-pi'] } },
     ),
   );
+  await page.route('**/api/groups/*/computer-main', (route) =>
+    route.fulfill({ json: { sessionId: null } }),
+  );
   let markPdfRequestStarted!: () => void;
   const pdfRequestStarted = new Promise<void>((resolve) => {
     markPdfRequestStarted = resolve;
