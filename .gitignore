@@ -67,6 +67,12 @@ test-results/
 .coco/
 .agent/
 .agents/
+# Version the shared project workflow; keep other local agent metadata private.
+!/.agents/
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/skydot-agent-engineering/
 skills-lock.json
 --connect
 .playwright-mcp/

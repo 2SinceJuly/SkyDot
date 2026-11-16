@@ -2,6 +2,8 @@
 
 本文档描述当前代码的工程约束和导航入口，供人类与 AI 协作者共同使用。
 
+需求交接、开发验证、PR 验收与维护复盘使用项目 Skill：[skydot-agent-engineering](.agents/skills/skydot-agent-engineering/SKILL.md)。它补充协作方法，不替代本文的工程约束。是否提 Issue 由用户决定；不设置固定的草稿审批环节。修改代码前查看 [经验记录](LESSONS.md) 中与当前任务有关的条目。
+
 ## 1. 文档与代码真相源
 
 - 产品介绍、安装和常用操作：`README.md`
