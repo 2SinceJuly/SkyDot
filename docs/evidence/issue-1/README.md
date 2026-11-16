@@ -51,3 +51,16 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH='/Applications/Google Chrome.app/Contents/Ma
 中文输入法采用 composition 事件模拟；没有用物理手机软键盘或原生输入法手动确认。
 后续消息队列业务逻辑保持原状，本轮未逐项重测队列编辑、重排和投递。
 没有验证 Electron 专属行为。尚未独立验收。
+
+## 项目门槛结果
+
+- `npm run format:changed`、`npm run docs:check`、`make typecheck`、
+  `make build`、`git diff --check` 通过。
+- 相关浏览器检查 16/16 通过；增加错误提示 alert 语义后，输入区 7/7 再次通过。
+- `make test`：527 个文件通过、1 个失败、13 个跳过；3695 项通过、
+  1 项失败、44 项跳过，耗时 486.32 秒。
+- 唯一失败为 `tests/browser-target-policy.test.ts:99` 的跨进程锁断言：
+  子进程持锁期间 backend.observe 仍被调用。单独运行
+  `npm test -- --run tests/browser-target-policy.test.ts` 也在同一断言失败
+  （5 项通过、1 项失败）。对应实现、测试和子进程 fixture 与改前基准
+  完全相同，本轮未修改此模块。全量门槛因此未全绿，该问题仍需单独处理。
