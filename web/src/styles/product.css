@@ -70,8 +70,8 @@ html:root.theme-neutral {
   --ease-overshoot: cubic-bezier(0.22, 1, 0.36, 1);
 
   --font-display:
-    'Instrument Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC',
-    'Alibaba PuHuiTi 3', 'Microsoft YaHei', sans-serif;
+    'Instrument Sans', 'Inter', -apple-system, BlinkMacSystemFont,
+    'PingFang SC', 'Alibaba PuHuiTi 3', 'Microsoft YaHei', sans-serif;
   --font-body:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'PingFang SC',
     'Alibaba PuHuiTi 3', 'Microsoft YaHei', sans-serif;
@@ -1386,17 +1386,58 @@ body {
 .product-bottom-nav button[aria-current='page'] {
   color: var(--accent);
 }
-.conversation-dock [data-input-surface] {
+.message-composer {
+  min-width: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius-surface);
+  border-radius: var(--radius-compact);
   corner-shape: squircle;
   background: var(--surface-elevated);
-  box-shadow: var(--elev-raised);
+  box-shadow: var(--elev-flat);
   transition:
     border-color var(--motion-fast) var(--ease-standard),
     box-shadow var(--motion-fast) var(--ease-standard);
 }
-.conversation-dock [data-input-surface]:focus-within,
+.message-composer:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.message-composer-error {
+  border-radius: var(--radius-compact) var(--radius-compact) 0 0;
+}
+.message-composer-editor {
+  padding: 16px 16px 8px;
+}
+.message-composer-textarea {
+  display: block;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+/* The surface owns editor focus; toolbar controls retain their own outlines. */
+.message-composer-textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.message-composer-toolbar {
+  min-height: 52px;
+  gap: 4px;
+  padding: 0 8px 8px;
+}
+.message-composer--compact .message-composer-editor {
+  padding-top: 12px;
+}
+.message-composer--compact .message-composer-textarea {
+  min-height: 24px;
+}
+@media (max-width: 1023px) {
+  .message-composer-editor {
+    padding: 12px 12px 8px;
+  }
+  .message-composer-textarea {
+    min-height: 24px;
+  }
+}
 .group-composer:focus-within {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
   box-shadow:
