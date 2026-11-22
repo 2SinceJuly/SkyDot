@@ -6,7 +6,9 @@
 
 长期承接用户委托并持续办事，而不只是改代码。
 
-[在线体验 · skydot.eu.cc](https://skydot.eu.cc/)　·　[观看 1 分钟介绍（1080p 横屏）](https://cdn.jsdelivr.net/gh/2SinceJuly/SkyDot@b9d3e71f951bce13b1cc5fb4a152bff3e8c043c7/assets/skydot-intro.mp4)　·　[自己部署](#自己部署)
+[在线体验 · skydot.eu.cc](https://skydot.eu.cc/)　·　[自己部署](#自己部署)
+
+https://github.com/user-attachments/assets/eb7f2240-451d-4ad1-a717-c2e28cea7e8e
 
 在 SkyDot 里，你把工作交给一个有名字、有职责的 AI 助手，叫作 **Dot**。它可以沿用工作区里的文件和偏好，按约定的时间继续做事。需要几个人分工时，你也可以把多个 Dot 拉进同一个群，在一条时间线上看分工、进度和交付物。
 
