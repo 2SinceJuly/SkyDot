@@ -6,7 +6,7 @@
 
 长期承接用户委托并持续办事，而不只是改代码。
 
-[在线体验 · skydot.eu.cc](https://skydot.eu.cc/)　·　[自己部署](#自己部署)
+在线演示：[桌面端](https://skydot.eu.cc/) · [移动端](https://skydot.eu.cc/mobile)　·　[自己部署](#自己部署)
 
 https://github.com/user-attachments/assets/eb7f2240-451d-4ad1-a717-c2e28cea7e8e
 
@@ -14,15 +14,26 @@ https://github.com/user-attachments/assets/eb7f2240-451d-4ad1-a717-c2e28cea7e8e
 
 [![SkyDot 桌面工作台，点击打开在线演示](docs/screenshots/desktop-light-chat.png)](https://skydot.eu.cc/)
 
-## 先看一次发布评审
+## 系统架构
 
-打开[在线演示](https://skydot.eu.cc/)，进入「SkyDot v1.2 发布冲刺群」。群里的委托很具体：周五下午四点前，准备好这次发布的评审报告。
+[![SkyDot 五层架构，展示接入、主服务、执行、能力与协作、存储与观测](assets/skydot-system.svg)](assets/skydot-system.svg)
 
-1. **小点排议程。** 它先把任务分给知微和筑码，也把「周五四点以后不排评审」留进了时间表。
-2. **两个 Dot 分头核查。** 知微看架构、记忆与权限，筑码看构建、测试和桌面端安全。两份结论都回到原来的群里，可以顺着消息查看依据。
-3. **你确认交付。** 小点把两份结论和仍待解决的问题写成《发布就绪评估报告》。你可以先看报告，再决定是否批准写入工作区。
+一条消息从 Web、桌面端或 IM 进入 Node.js 主服务。主服务验证身份，找到对应的工作区和会话，再由队列把任务交给 Host 或 Docker Runner。Pi Agent 只获得这个 Dot 已启用的能力，执行进度和结果沿会话回到工作台。
 
-在线站使用预置数据，可以直接体验这些交互。要让 Dot 处理自己的文件、调用模型或按时执行任务，可以在自己的机器上部署。
+**会话**保存各自的对话上下文，**工作区**决定哪些文件和长期记忆可以复用。加入同一个群聊，也不会自动获得其他成员的私人工作区权限。图中的 Cloudflare Workers 与 Durable Objects 属于默认关闭的实验路径。[架构详解](docs/personal-agent/architecture.md) · [权限矩阵](docs/ACL-MATRIX.md) · [云端运行验收](docs/personal-agent/cloudflare-real-acceptance.md)
+
+## 视频里的核心功能
+
+从视频 **00:23** 起，可以按下面的时间点看 SkyDot 怎样执行一项委托。
+
+| 视频位置 | 功能 | 实际行为 |
+| --- | --- | --- |
+| 00:24 | 工作台与执行引擎 | 一项委托绑定到工作区和会话。桌面工具、浏览器工具和模型按这个上下文执行，结果回到发起委托的会话。 |
+| 00:29 | Pi Durable 双域账本与独占锁 | 主服务数据库记录会话归属与授权，会话自己的 SQLite 保存执行进度和检查点。启用 Durable 的 Host 会话重启时先校验归属，再取得写入权，从已保存的进度恢复；另一个进程不能同时接管。 |
+| 00:35 | Computer Use（CU）快照围栏与浏览器防间接注入 | Dot 先观察窗口，再用绑定该窗口和快照的令牌点击或输入。窗口切换或快照过期时，必须重新观察。浏览器读到的网页内容作为外部数据处理，页面上的文字没有工具授权。 |
+| 00:40 | Call Intent 幂等、群聊交接与版本化记忆 | MCP 写操作按已批准的调用意图执行；如果中断后无法确认是否成功，就标记为待核查，避免重复执行。群聊里的 Dot 通过收件箱交接任务，修改记忆时核对版本，防止旧内容覆盖新决定。 |
+| 00:46 | 常驻 VPS 与出站设备节点 | 主服务可以在自己的 VPS 上运行。个人设备主动连接，经一次性配对和工作区授权后，仅开放明确列出的文件。Cloudflare Durable Object 是默认关闭的实验路径。 |
+| 00:52 | 跨端审批、SQLite WAL 备份与事件触发 | 手机上可以处理待审批事项，桌面端继续查看同一项工作。备份时为运行中的 SQLite 创建一致性快照，将已提交到 WAL 的变更纳入备份。启用 GitHub 订阅后，符合条件的事件也能触发任务。 |
 
 ## 自己用时，可以交给它什么
 
@@ -61,14 +72,6 @@ npm start
 - **本机免登录演示**仅适用于回环地址。运行条件与配置见[本地 Demo 说明](DEMO.md)。
 
 </details>
-
-## 系统架构
-
-[![SkyDot 五层架构，展示接入、主服务、执行、能力与协作、存储与观测](assets/skydot-system.svg)](assets/skydot-system.svg)
-
-一条消息从 Web、桌面端或 IM 进入 Node.js 主服务。主服务验证身份，找到对应的工作区和会话，再由队列把任务交给 Host 或 Docker Runner。Pi Agent 只获得这个 Dot 已启用的能力，执行进度和结果沿会话回到工作台。
-
-**会话**保存各自的对话上下文，**工作区**决定哪些文件和长期记忆可以复用。加入同一个群聊，也不会自动获得其他成员的私人工作区权限。图中的 Cloudflare Workers 与 Durable Objects 属于默认关闭的实验路径。[架构详解](docs/personal-agent/architecture.md) · [权限矩阵](docs/ACL-MATRIX.md) · [云端运行验收](docs/personal-agent/cloudflare-real-acceptance.md)
 
 ## 文档与贡献
 
