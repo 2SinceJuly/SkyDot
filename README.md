@@ -6,7 +6,7 @@
 
 长期承接用户委托并持续办事，而不只是改代码。
 
-https://github.com/user-attachments/assets/eb7f2240-451d-4ad1-a717-c2e28cea7e8e
+https://github.com/user-attachments/assets/dbfb236c-93aa-4c00-b913-93447fdb3c04
 
 ## 在线演示
 
@@ -82,6 +82,6 @@ npm start
 | 接口、认证与资源 | [HTTP API](docs/API.md) |
 | 参与开发或报告问题 | [工程协作指南](CLAUDE.md) · [界面规范](DESIGN.md) · [安全问题报告](SECURITY.md) |
 
-也可以从仓库[下载横屏介绍视频（MP4，约 9.4 MiB）](assets/skydot-intro.mp4?raw=1)。
+也可以从仓库[下载横屏介绍视频（MP4，约 8.8 MiB）](assets/skydot-intro.mp4?raw=1)。
 
 SkyDot 由 [2SinceJuly](https://github.com/2SinceJuly) 维护，以 [MIT 许可证](LICENSE) 开源。
