@@ -9,9 +9,8 @@ SkyDot 是 **Personal AI Assistant / Personal AI Team**，不是 Agent 管理后
 
 > 用户打开 SkyDot 后，第一感受应该是“这是我的 AI 助手，我现在就可以和它说话”，而不是“这是一个需要配置的 Agent Dashboard”。
 
-产品结构参考 Grok Bot 的 conversation-first 交互；视觉语法来自 Qoder 的
-克制、密度、暖色中性底与森林绿 accent（取样自 Qoder 0.5.6 发布版）；品牌身份
-使用 SkyDot 自己的 Dot / Bot Avatar。
+产品结构延续 conversation-first 交互。默认网页以 SkyDot 官方演示的
+蓝色标记、紧凑侧栏、状态栏和消息时间线为视觉基准，使用 SkyDot 的 Dot Avatar。
 
 ---
 
@@ -25,7 +24,7 @@ SkyDot 的设计关键词：
 - personal
 - playful
 - restrained
-- forest green
+- sky blue
 - rounded
 - native
 - low-chrome
@@ -247,31 +246,30 @@ Mobile 使用 Composer 上方 picker 或 Bottom Sheet。
 
 现有代码可以渐进迁移，但任何新组件必须优先使用语义 token。
 
-当前 token 取样自 Qoder 0.5.6 发布版 renderer 的主题块：暖森林浅色、
-近黑深色，以及同样克制的绿系 accent。蓝色不再作为品牌主色。
+默认 token 以官方演示的浅色与深色界面为基准。薄荷和羊皮纸仍是可选预设。
 
 ### 6.1 Light
 
 ```css
 --bg: #ffffff;
---surface: #f9f9f9;
---surface-2: #f6f6f6;
---surface-3: #efefef;
+--surface: #fafafa;
+--surface-2: #f0f0f0;
+--surface-3: #f2f3f5;
 --surface-spotlight: #fafafa;
 
---fg: #141414;
---fg-strong: #0f0d0c;
---muted: #636261;
---meta: #838280;
+--fg: #222222;
+--fg-strong: #18181b;
+--muted: #45515e;
+--meta: #73747a;
 
---border: #e6e6e6;
+--border: #e5e7eb;
 --border-strong: #ddd;
---border-soft: #efefef;
+--border-soft: #f2f3f5;
 
---accent: #4b6f5a;
---accent-hover: #436651;
---accent-active: #3a5747;
---accent-soft: #f2f4f2;
+--accent: #1456f0;
+--accent-hover: #2563eb;
+--accent-active: #1d4ed8;
+--accent-soft: rgb(20 86 240 / 0.08);
 --accent-on: #ffffff;
 
 --success: #579b6e;
@@ -285,31 +283,31 @@ Mobile 使用 Composer 上方 picker 或 Bottom Sheet。
 Dark Mode 使用相同语义，不重新发明视觉风格：
 
 ```css
---bg: #111110;
---surface: #22221f;
---surface-2: #20201e;
---surface-3: #31312d;
+--bg: #111318;
+--surface: #171a20;
+--surface-2: #20242b;
+--surface-3: #2a3039;
 
---fg: #eeeeeb;
+--fg: #f3f5f7;
 --fg-strong: #ffffff;
---muted: #b4b4ac;
---meta: #7b7b74;
+--muted: #a8b0bd;
+--meta: #8c97a7;
 
---border: #3b3a35;
---border-soft: #292926;
+--border: #303641;
+--border-soft: #252a32;
 
---accent: #8ee5a1;
---accent-hover: #9be6b3;
---accent-active: #73cd94;
---accent-soft: #1d3424;
---accent-on: #080807;
+--accent: #8fb1ff;
+--accent-hover: #abc3ff;
+--accent-active: #c3d3ff;
+--accent-soft: rgb(143 177 255 / 0.13);
+--accent-on: #111318;
 ```
 
 Dark Mode 不使用高饱和 neon glow。
 
 ### 6.3 Color Rule
 
-绿色 accent 只负责：
+蓝色 accent 只负责：
 
 - current Dot
 - primary action
@@ -319,13 +317,13 @@ Dark Mode 不使用高饱和 neon glow。
 - selected state
 - working emphasis
 
-普通内容主要使用暖黑 / 白 / 灰。
+普通内容主要使用黑 / 白 / 灰。
 
 不要为每个功能分配一个品牌色。
 
 ### 6.4 主题预设
 
-`product.css` 同时提供 Qoder 的另外几套预设，通过 `html.theme-*` 切换：
+`product.css` 同时提供另外两套预设，通过 `html.theme-*` 切换：
 
 - `theme-mint`：偏冷的薄荷绿
 - `theme-parchment`：暖纸色，配合 `--accent: #c96442`

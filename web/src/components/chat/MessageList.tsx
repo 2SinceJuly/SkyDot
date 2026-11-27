@@ -538,7 +538,7 @@ export function MessageList({
           className={
             displayMode === 'compact'
               ? 'mx-auto px-4 min-w-0'
-              : 'max-w-4xl mx-auto px-4 min-w-0'
+              : 'product-timeline-content min-w-0'
           }
         >
           {loading && hasMore && (
@@ -717,9 +717,9 @@ export function MessageList({
           {timelineMessages.length === 0 && !loading && (
             <div
               data-hc-empty-state
-              className="conversation-greeting absolute inset-x-0 top-0 bottom-0 flex items-center justify-center px-6"
+              className="conversation-greeting product-timeline-content"
             >
-              <div className="w-full max-w-xl">
+              <div className="w-full">
                 <div className="flex items-start gap-3">
                   {agentProfileId ? (
                     <BotIdentityAvatar

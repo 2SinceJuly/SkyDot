@@ -531,7 +531,7 @@ export function UsagePage() {
 
   return (
     <div className="product-advanced-page min-h-full bg-background px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-      <div className="mx-auto min-w-0 max-w-7xl space-y-6">
+      <div className="product-feature-frame min-w-0 space-y-6">
         <header className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">

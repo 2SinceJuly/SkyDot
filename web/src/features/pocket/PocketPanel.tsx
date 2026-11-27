@@ -53,17 +53,17 @@ function routeFolder(pathname: string): string | null {
   }
 }
 
-/** A secondary header action; continuity does not need its own navigation bar. */
 export function PocketTrigger() {
   return (
     <button
       type="button"
       aria-label="跨设备接续"
       title="跨设备接续"
-      className="product-icon-action"
+      className="product-status-action product-status-continuity"
       onClick={() => window.dispatchEvent(new Event('skydot:open-pocket'))}
     >
       <Smartphone size={18} aria-hidden="true" />
+      <span>跨设备接续</span>
     </button>
   );
 }
@@ -296,44 +296,6 @@ export function PocketPanel() {
 
   return (
     <>
-      {!(
-        /^\/chat(?:\/|$)/.test(route.pathname) ||
-        /^\/bot-groups\/.+/.test(route.pathname)
-      ) && (
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 border-b px-3 py-1">
-          <span className="text-xs text-muted-foreground" role="status">
-            {connected ? '已连接服务端' : '连接已断开，服务端任务不会因此停止'}
-          </span>
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => {
-              setNotifications(notificationsEnabled());
-              setOpen(true);
-            }}
-          >
-            <Smartphone size={16} aria-hidden="true" />
-            跨设备接续
-          </button>
-          {agentId &&
-            agents.find((agent) => agent.id === agentId)?.runtime_kind ===
-              'pi-durable' && (
-              <span className="text-xs text-muted-foreground">
-                持久执行 · 费用尚未计价
-              </span>
-            )}
-        </div>
-      )}
-      {!connected &&
-        (/^\/chat(?:\/|$)/.test(route.pathname) ||
-          /^\/bot-groups\/.+/.test(route.pathname)) && (
-          <p
-            role="status"
-            className="shrink-0 px-4 py-1 text-xs text-muted-foreground"
-          >
-            连接已断开，正在重新连接…
-          </p>
-        )}
       {knownTarget &&
         jid &&
         agentId &&

@@ -99,7 +99,7 @@ export function SettingsPage() {
     !!currentUser?.permissions.includes('manage_invites') ||
     !!currentUser?.permissions.includes('view_audit_log');
 
-  const defaultTab: SettingsTab = 'profile';
+  const defaultTab: SettingsTab = 'preferences';
   const rawTabValue = searchParams.get('tab');
   // Keep bookmarks and already-open tabs from the retired automation page on
   // the closest remaining settings surface instead of falling back to models.
@@ -114,7 +114,9 @@ export function SettingsPage() {
       if (SYSTEM_TABS.includes(raw) && !canManageSystemConfig)
         return defaultTab;
       if (
-        (raw === 'main-agent' || raw === 'host-integration' || raw === 'observability') &&
+        (raw === 'main-agent' ||
+          raw === 'host-integration' ||
+          raw === 'observability') &&
         currentUser?.role !== 'admin'
       ) {
         return defaultTab;
@@ -222,7 +224,7 @@ export function SettingsPage() {
           </>
         ) : (
           <div className="px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
-            <div className="mx-auto max-w-6xl">
+            <div className="product-feature-frame">
               <header className="mb-6">
                 <h1 className="product-page-title">
                   {sectionTitle[activeTab]}

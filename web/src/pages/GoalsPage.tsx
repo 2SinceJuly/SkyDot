@@ -181,10 +181,8 @@ export function GoalsPage() {
   }, []);
   const attentionView = searchParams.get('view') === 'attention';
   useEffect(() => {
-    if (attentionView) {
-      setWorkFilter('attention');
-      setDetailOpen(false);
-    }
+    setWorkFilter(attentionView ? 'attention' : 'all');
+    if (attentionView) setDetailOpen(false);
   }, [attentionView]);
   const requestedGoal = searchParams.get('goal');
   useEffect(() => {
@@ -334,16 +332,15 @@ export function GoalsPage() {
   }
 
   return (
-    <main className="min-h-full p-4 sm:p-6">
-      <div className="mx-auto max-w-6xl space-y-5">
+    <main className="min-h-full p-4 sm:px-9 sm:py-7">
+      <div className="product-feature-frame space-y-5">
         <PageHeader
-          title="我的工作"
+          title={attentionView ? '需要你处理' : '我的工作'}
           subtitle="持续推进的目标、需要你处理的事项与成果"
           actions={
             <>
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
                 aria-label="刷新委托"
                 onClick={() => {
                   setError(null);
@@ -351,6 +348,7 @@ export function GoalsPage() {
                 }}
               >
                 <RefreshCw className="size-4" />
+                刷新
               </Button>
               <Button
                 onClick={(event) => {
@@ -361,7 +359,7 @@ export function GoalsPage() {
                 disabled={disabled}
               >
                 <Plus className="size-4" />
-                {retryCreate ? '核对原提交' : '新建'}
+                {retryCreate ? '核对原提交' : '新建目标'}
               </Button>
             </>
           }

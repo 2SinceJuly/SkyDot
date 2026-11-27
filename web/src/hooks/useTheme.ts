@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
-// orange/neutral are legacy stored values kept readable; the UI offers Qoder
-// presets instead (default = forest, mint, parchment).
+// orange/neutral are legacy stored values kept readable.
 export type ColorScheme =
   | 'default'
   | 'mint'
@@ -93,7 +92,7 @@ export function applyTheme(theme: Theme) {
 function applyColorScheme(scheme: ColorScheme) {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
-  // Legacy schemes keep working for stored values; new presets map to Qoder's.
+  // Legacy schemes keep working for stored values.
   root.classList.toggle('theme-orange', scheme === 'orange');
   root.classList.toggle('theme-neutral', scheme === 'neutral');
   root.classList.toggle('theme-mint', scheme === 'mint');

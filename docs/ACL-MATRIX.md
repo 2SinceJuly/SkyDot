@@ -67,6 +67,10 @@
 旁路。修改与遗忘复用既有 Memory 修订/回执，旧修订授权不会随内容更新自动扩展。
 读取工具从实际 Session 映射获取 owner/Workspace，不接受模型指定其他用户或来源域。
 
+智能家居状态和命令要求 `manage_system_config`。服务器进程配置 Home Assistant
+连接及实体白名单，浏览器只能读取白名单状态和提交已支持的动作。演示模式中不访问
+Home Assistant。
+
 ## 3. 当前用户资源
 
 以下资源以登录用户 ID 为作用域，不接受客户端指定其他 owner：
@@ -79,7 +83,7 @@
 | `/api/skills/*`                                     | Login，仅本人用户 Skills                      |
 | 用户级 `/api/mcp-servers/*`                         | Login，仅本人配置                             |
 | Workspace Memory v2                                 | Login + Workspace owner ACL，见 4.5           |
-| SkyDot Owner Profile                              | Home actual owner + runtime exact-turn gate   |
+| SkyDot Owner Profile                                | Home actual owner + runtime exact-turn gate   |
 | `/api/usage/*`                                      | Login；普通用户只见本人，管理视图再按角色过滤 |
 | `/api/billing/my/*`                                 | Login，仅本人                                 |
 
@@ -180,9 +184,9 @@ Runtime 的权限更严格：
 
 | 上下文                                       | 投影                | 修改                  |
 | -------------------------------------------- | ------------------- | --------------------- |
-| Home 内置 SkyDot + actual owner turn       | 允许                | 当前 active turn 允许 |
-| Home 内置 SkyDot + 非 owner 群成员 turn    | 拒绝                | 拒绝                  |
-| Home 内置 SkyDot 普通 Runtime Session      | actual owner 时允许 | 当前 active turn 允许 |
+| Home 内置 SkyDot + actual owner turn         | 允许                | 当前 active turn 允许 |
+| Home 内置 SkyDot + 非 owner 群成员 turn      | 拒绝                | 拒绝                  |
+| Home 内置 SkyDot 普通 Runtime Session        | actual owner 时允许 | 当前 active turn 允许 |
 | 自定义 AgentProfile / Scheduled / Task/Spawn | 拒绝                | 拒绝                  |
 | SDK Sub-Agent                                | 拒绝                | 拒绝                  |
 

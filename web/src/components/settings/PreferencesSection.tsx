@@ -44,11 +44,11 @@ const SCHEME_OPTIONS: {
 }[] = [
   {
     value: 'default',
-    label: '森林',
+    label: '静蓝',
     preview: {
-      bg: '#f9f9f9',
-      accent: '#4b6f5a',
-      text: '#141414',
+      bg: '#fafafa',
+      accent: '#1456f0',
+      text: '#222222',
     },
   },
   {

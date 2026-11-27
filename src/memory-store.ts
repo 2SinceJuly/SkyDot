@@ -1668,6 +1668,34 @@ export function forgetWorkspaceMemoryItem(input: {
   })();
 }
 
+const ACTIVE_WORKSPACE_MEMORY = `i.store_id = ?
+  AND i.status = 'active'
+  AND (i.canonical_key IS NULL OR i.canonical_key <> ?)
+  AND NOT EXISTS (
+    SELECT 1 FROM workspace_memory_platform_items mpi
+    WHERE mpi.item_id = i.id
+  )
+  AND (i.valid_from IS NULL OR julianday(i.valid_from) <= julianday(?))
+  AND (i.valid_until IS NULL OR julianday(i.valid_until) > julianday(?))
+  AND (i.expires_at IS NULL OR julianday(i.expires_at) > julianday(?))`;
+
+export function getWorkspaceMemoryOverview(workspaceJid: string) {
+  const store = requireStore(workspaceJid);
+  const now = nowIso();
+  const { activeCount } = requireDatabase()
+    .prepare(
+      `SELECT COUNT(*) AS activeCount FROM workspace_memory_items i WHERE ${ACTIVE_WORKSPACE_MEMORY}`,
+    )
+    .get(
+      store.id,
+      SKYDOT_OWNER_PREFERRED_ADDRESS_CANONICAL_KEY,
+      now,
+      now,
+      now,
+    ) as { activeCount: number };
+  return { storeRevision: store.revision, activeCount };
+}
+
 export function listWorkspaceMemoryItems(input: {
   workspaceJid: string;
   status?: WorkspaceMemoryStatus;
@@ -1735,16 +1763,7 @@ export function listRecallableWorkspaceMemoryItems(input: {
   const rows = requireDatabase()
     .prepare(
       `${ITEM_SELECT}
-       WHERE i.store_id = ?
-         AND i.status = 'active'
-         AND (i.canonical_key IS NULL OR i.canonical_key <> ?)
-         AND NOT EXISTS (
-           SELECT 1 FROM workspace_memory_platform_items mpi
-           WHERE mpi.item_id = i.id
-         )
-         AND (i.valid_from IS NULL OR julianday(i.valid_from) <= julianday(?))
-         AND (i.valid_until IS NULL OR julianday(i.valid_until) > julianday(?))
-         AND (i.expires_at IS NULL OR julianday(i.expires_at) > julianday(?))
+       WHERE ${ACTIVE_WORKSPACE_MEMORY}
          ${kindClause}
        ORDER BY i.importance DESC, i.updated_at DESC, i.id DESC
        LIMIT ?`,

@@ -16,7 +16,6 @@ import {
   History,
   Lightbulb,
   Loader2,
-  MessageSquareText,
   Plus,
   RefreshCw,
   Save,
@@ -162,8 +161,10 @@ function MemoryListItem({
     <button
       type="button"
       onClick={() => onSelect(item)}
-      className={`memory-list-row w-full px-3.5 py-3 text-left transition-colors ${
-        active ? 'bg-surface-hover' : 'bg-background hover:bg-surface-hover'
+      className={`memory-list-row w-full rounded-xl border px-3.5 py-3 text-left transition-colors ${
+        active
+          ? 'border-primary bg-primary/5'
+          : 'border-border bg-background hover:bg-surface-hover'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -918,100 +919,65 @@ export function MemoryPage() {
       className="product-advanced-page min-h-full bg-background p-4 lg:p-8"
       data-memory-v2="true"
     >
-      <div className="mx-auto max-w-7xl space-y-4">
-        <Card className="resource-page-header">
-          <CardContent className="space-y-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-brand-100 p-2.5">
-                  <BookOpen className="size-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="product-page-title">工作区记忆</h1>
-                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                    沉淀当前工作区跨 Session
-                    可复用的事实、决策、经验和待跟进事项。
-                  </p>
-                </div>
-              </div>
+      <div className="product-feature-frame space-y-4">
+        <header className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="product-page-title">工作区记忆</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              沉淀跨会话可复用的事实、决策、经验和待跟进事项。
+            </p>
+          </div>
+          <Button
+            onClick={openCreate}
+            disabled={!selectedWorkspaceJid || !canModify}
+          >
+            <Plus />
+            新建记忆
+          </Button>
+        </header>
 
-              <div className="flex flex-wrap items-end gap-2">
-                <div className="min-w-56">
-                  <Label
-                    htmlFor="memory-workspace"
-                    className="mb-1.5 block text-xs text-muted-foreground"
-                  >
-                    工作区
-                  </Label>
-                  <Select
-                    value={selectedWorkspaceJid}
-                    onValueChange={handleWorkspaceChange}
-                    disabled={workspaceLoading || workspaces.length === 0}
-                  >
-                    <SelectTrigger
-                      id="memory-workspace"
-                      className="h-9 w-full min-w-56"
-                    >
-                      <SelectValue placeholder="选择工作区" />
-                    </SelectTrigger>
-                    <SelectContent position="popper" align="end">
-                      {workspaces.map((workspace) => (
-                        <SelectItem key={workspace.jid} value={workspace.jid}>
-                          {workspace.name}
-                          {workspace.is_home ? ' · Home' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  className="h-9"
-                  onClick={openCreate}
-                  disabled={!selectedWorkspaceJid || !canModify}
-                >
-                  <Plus />
-                  新建记忆
-                </Button>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm">
-              <div className="flex items-start gap-2.5">
-                <MessageSquareText className="mt-0.5 size-4 shrink-0 text-primary" />
-                <div>
-                  <div className="font-medium text-foreground">
-                    工作区记忆 与 Session 历史彼此独立
-                  </div>
-                  <p className="mt-0.5 leading-5 text-muted-foreground">
-                    Session 保留一段对话的上下文；这里仅保存经过提炼、可跨
-                    Session
-                    使用的工作区知识。忘记一条工作区记忆不会删除聊天历史。
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {selectedWorkspace && (
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">
-                  {selectedWorkspace.name}
-                </span>
-                <span>·</span>
-                <span>
-                  {selectedWorkspace.agent_profile?.name || '主智能体'}
-                </span>
-                <span>·</span>
-                <span>{canModify ? '可编辑' : '只读'}</span>
-                {storeRevision !== null && (
-                  <>
-                    <span>·</span>
-                    <span>Store revision {storeRevision}</span>
-                  </>
-                )}
-              </div>
+        <section className="memory-workspace-picker">
+          <div className="flex flex-wrap items-center gap-3">
+            <Label
+              htmlFor="memory-workspace"
+              className="text-xs text-muted-foreground"
+            >
+              当前工作区
+            </Label>
+            <Select
+              value={selectedWorkspaceJid}
+              onValueChange={handleWorkspaceChange}
+              disabled={workspaceLoading || workspaces.length === 0}
+            >
+              <SelectTrigger
+                id="memory-workspace"
+                className="w-full sm:w-auto sm:min-w-56 sm:max-w-lg sm:flex-1"
+              >
+                <SelectValue placeholder="选择工作区" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {workspaces.map((workspace) => (
+                  <SelectItem key={workspace.jid} value={workspace.jid}>
+                    {workspace.name}
+                    {workspace.is_home ? ' · Home' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {storeRevision !== null && (
+              <span className="memory-store-revision">
+                Store revision {storeRevision}
+              </span>
             )}
-          </CardContent>
-        </Card>
+          </div>
+          {selectedWorkspace && (
+            <p className="text-xs text-muted-foreground">
+              {selectedWorkspace.agent_profile?.name || '主智能体'} ·{' '}
+              {canModify ? '可编辑' : '只读'} · 工作区记忆 与 Session
+              历史彼此独立
+            </p>
+          )}
+        </section>
 
         {workspaceError && (
           <Card>
@@ -1037,76 +1003,64 @@ export function MemoryPage() {
 
         {selectedWorkspaceJid && (
           <>
-            <Card>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-2 min-[1101px]:grid-cols-4">
-                  {WORKSPACE_MEMORY_KINDS.map((kind) => {
-                    const Icon = KIND_ICONS[kind];
-                    return (
-                      <button
-                        key={kind}
-                        type="button"
-                        onClick={() =>
-                          setKindFilter((current) =>
-                            current === kind ? 'all' : kind,
-                          )
-                        }
-                        className={`rounded-xl border p-3 text-left transition-colors ${
-                          kindFilter === kind
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:bg-muted/50'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <Icon className="size-4 text-primary" />
-                          <span className="text-lg font-semibold text-foreground">
-                            {counts[kind]}
-                            {nextCursor ? '+' : ''}
-                          </span>
-                        </div>
-                        <div className="mt-2 text-sm font-medium text-foreground">
-                          {KIND_META[kind].label}
-                        </div>
-                        <div className="mt-0.5 text-[11px] text-muted-foreground">
-                          {KIND_META[kind].description}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      value={query}
-                      onChange={(event) => setQuery(event.target.value)}
-                      className="h-10 pl-9"
-                      placeholder="搜索当前工作区的记忆"
-                      aria-label="搜索当前工作区的记忆"
-                    />
-                    {searching && (
-                      <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-                    )}
-                  </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full sm:w-70">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  className="h-10 pl-9"
+                  placeholder="搜索当前工作区的记忆"
+                  aria-label="搜索当前工作区的记忆"
+                />
+                {searching && (
+                  <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              <div
+                className="flex flex-wrap items-center gap-1.5"
+                role="group"
+                aria-label="记忆类别"
+              >
+                <Button
+                  variant={kindFilter === 'all' ? 'default' : 'outline'}
+                  aria-pressed={kindFilter === 'all'}
+                  size="sm"
+                  onClick={() => setKindFilter('all')}
+                >
+                  全部 ({items.length}
+                  {nextCursor ? '+' : ''})
+                </Button>
+                {WORKSPACE_MEMORY_KINDS.map((kind) => (
                   <Button
-                    variant="outline"
-                    className="h-10"
-                    onClick={() => void refreshMemoryView()}
-                    disabled={listLoading || searching}
+                    key={kind}
+                    size="sm"
+                    variant={kindFilter === kind ? 'default' : 'outline'}
+                    aria-pressed={kindFilter === kind}
+                    onClick={() => setKindFilter(kind)}
                   >
-                    <RefreshCw
-                      className={listLoading || searching ? 'animate-spin' : ''}
-                    />
-                    刷新
+                    {KIND_META[kind].label} ({counts[kind]}
+                    {nextCursor ? '+' : ''})
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="刷新"
+                onClick={() => void refreshMemoryView()}
+                disabled={listLoading || searching}
+              >
+                <RefreshCw
+                  className={listLoading || searching ? 'animate-spin' : ''}
+                />
+                刷新
+              </Button>
+            </div>
 
-            <div className="grid grid-cols-1 gap-4 min-[1101px]:grid-cols-[380px_1fr]">
+            <div className="grid grid-cols-1 gap-7 min-[1024px]:grid-cols-[minmax(256px,310px)_1fr]">
               {(!isMobile || !showDetail) && (
-                <Card>
+                <Card className="memory-item-list">
                   <CardContent>
                     <div className="mb-3 flex items-center justify-between gap-2">
                       <div>
@@ -1193,7 +1147,7 @@ export function MemoryPage() {
               )}
 
               {(!isMobile || showDetail) && (
-                <Card>
+                <Card className="memory-detail-panel">
                   <CardContent>
                     {isMobile && (
                       <Button

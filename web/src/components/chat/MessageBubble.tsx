@@ -361,7 +361,7 @@ export const MessageBubble = memo(
         <div className="mb-6">
           {showTime && (
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-muted-foreground">{time}</span>
+              <time className="ml-auto">{time}</time>
               <span className="text-xs font-medium text-red-600">系统消息</span>
             </div>
           )}
@@ -407,7 +407,7 @@ export const MessageBubble = memo(
         <div className="mb-6">
           {showTime && (
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-muted-foreground">{time}</span>
+              <time className="ml-auto">{time}</time>
               <span className="text-xs font-medium text-amber-600">
                 {isBalanceBlocked ? '余额提醒' : '配额提醒'}
               </span>
@@ -601,16 +601,28 @@ export const MessageBubble = memo(
       );
     }
 
-    // ── Chat mode (default): bubble-style layout ──
+    // ── Chat mode (default) ──
     if (isUser) {
-      // User message: right-aligned
       return (
-        <div className="group flex justify-end mb-4">
-          <div className="flex flex-col items-end min-w-0 max-w-[75%]">
-            <div className="relative">
+        <div className="group product-message product-user-message">
+          <div className="min-w-0">
+            <div className="product-message-heading">
+              <span>你</span>
+              {showTime && <time>{time}</time>}
+              <button
+                ref={actions}
+                onClick={handleMenuButton}
+                className="product-message-menu"
+                title="更多"
+                aria-label="消息菜单"
+              >
+                <Ellipsis className="size-4" />
+              </button>
+            </div>
+            <div>
               {/* Image attachments */}
               {images.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2 justify-end">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {images.map((img, i) => (
                     <img
                       key={i}
@@ -625,28 +637,14 @@ export const MessageBubble = memo(
                 </div>
               )}
               {!hasOnlyImages && (
-                <div className="bg-muted text-foreground px-4 py-2.5 rounded-2xl rounded-tr-sm">
+                <div className="product-message-text">
                   <ConversationMessageBody
                     content={presentedContent}
                     bot={false}
                   />
                 </div>
               )}
-              <button
-                ref={actions}
-                onClick={handleMenuButton}
-                className="absolute -left-12 top-1/2 -translate-y-1/2 min-w-11 min-h-11 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/10 opacity-100 transition-all cursor-pointer"
-                title="更多"
-                aria-label="消息菜单"
-              >
-                <Ellipsis className="w-4 h-4" />
-              </button>
             </div>
-            {showTime && (
-              <span className="text-xs text-muted-foreground mt-1.5 mr-1">
-                {time}
-              </span>
-            )}
           </div>
 
           {lightboxState && (
@@ -677,11 +675,11 @@ export const MessageBubble = memo(
     const senderName = agentIdentity.name;
 
     return (
-      <div className="group mb-4">
+      <div className="group product-message product-dot-message">
         {/* Mobile: compact avatar + name row */}
         <div
           className={
-            showAuthor ? 'flex items-center gap-2 mb-1.5 lg:hidden' : 'sr-only'
+            showAuthor ? 'product-message-heading flex lg:hidden' : 'sr-only'
           }
         >
           {agentProfileId ? (
@@ -749,7 +747,7 @@ export const MessageBubble = memo(
             <div
               className={
                 showAuthor
-                  ? 'hidden lg:flex items-center gap-2 mb-1'
+                  ? 'product-message-heading hidden lg:flex'
                   : 'sr-only'
               }
             >

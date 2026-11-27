@@ -10,6 +10,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { UnifiedSidebar } from './UnifiedSidebar';
 import { BottomTabBar } from './BottomTabBar';
 import { ConnectionBanner } from '../common/ConnectionBanner';
+import { ProductStatusBar } from './ProductStatusBar';
 import { wsManager } from '../../api/ws';
 import { useTheme } from '../../hooks/useTheme';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -37,7 +38,7 @@ export function AppLayout() {
   const isChatRoute = location.pathname.startsWith('/chat');
   const hideMobileTabBar =
     /^\/chat\/.+/.test(location.pathname) || isGroupThread;
-  useTheme(); // 应用并同步持久化的主题偏好
+  const { resolvedTheme, setTheme } = useTheme();
   useRouteRestore(); // PWA 重启时恢复上次访问的路由（默认关闭，设置中启用）
   const loadGoalAvailability = useGoalsAvailability((state) => state.load);
   useEffect(() => {
@@ -231,6 +232,12 @@ export function AppLayout() {
                   </header>
                 )}
               <ConnectionBanner />
+              <ProductStatusBar
+                theme={resolvedTheme}
+                onToggleTheme={() =>
+                  setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+                }
+              />
               <PocketPanel />
               <main
                 id="main-content"

@@ -2529,6 +2529,7 @@ export async function runHostAgent(
   // Otherwise disabled/custom MCP can inherit servers from an earlier wrapper
   // environment even when this run intentionally resolves to an empty set.
   delete hostEnv['SKYDOT_USER_MCP_SERVERS_JSON'];
+  delete hostEnv['SKYDOT_HOME_ASSISTANT_TOKEN_FILE'];
   // Provider selection is authoritative. Do not let API settings inherited
   // from the SkyDot parent process leak into a host-mode child after the
   // user switches providers (especially third-party -> official OAuth).
