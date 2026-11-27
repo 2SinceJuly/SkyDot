@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useAgentProfilesStore } from '../../stores/agent-profiles';
 import { Input } from '../../components/ui/input';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,10 @@ import type { TeamOverview } from '../../../../src/personal-agent/team-product-t
 import { BotIdentityAvatar } from '../../components/common/BotIdentityAvatar';
 import type { BotAvatarState } from '../../components/common/BotAvatar';
 import { profileIdentity } from '../../components/common/bot-avatar/product-state';
+
+const DotTasks = lazy(async () => ({
+  default: (await import('../../pages/TasksPage')).TaskManagement,
+}));
 
 export const botStateLabels: Record<string, string> = {
   pending: '排队中',
@@ -28,6 +32,7 @@ export function BotDetail({
   onChat,
   verified,
   nativeWork,
+  preferredWorkspaceJid,
 }: {
   profile: AgentProfile;
   avatarState?: BotAvatarState;
@@ -36,6 +41,7 @@ export function BotDetail({
   pending: boolean;
   verified: boolean;
   nativeWork?: { text?: string; last_active?: string };
+  preferredWorkspaceJid?: string;
   onChat: () => void;
 }) {
   const [tab, setTab] = useState('conversation');
@@ -52,6 +58,7 @@ export function BotDetail({
   const tabs = [
     ['conversation', '对话'],
     ['work', '当前工作'],
+    ['schedules', '定时任务'],
     ['capabilities', '能力'],
     ['memory', '记忆'],
     ['settings', '设置'],
@@ -161,6 +168,15 @@ export function BotDetail({
               </>
             )}
           </>
+        )}
+        {tab === 'schedules' && (
+          <Suspense fallback={<p role="status">正在加载定时任务…</p>}>
+            <DotTasks
+              key={profile.id}
+              dot={profile}
+              preferredWorkspaceJid={preferredWorkspaceJid}
+            />
+          </Suspense>
         )}
         {tab === 'capabilities' && (
           <>

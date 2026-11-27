@@ -114,7 +114,7 @@ export function ContextPanelOutlet() {
     >
       <SheetContent
         side="bottom"
-        className="px-5"
+        className="max-h-[calc(100dvh-1rem)] px-5 pb-[max(1rem,env(safe-area-inset-bottom))]"
         key={content.key}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
@@ -125,7 +125,7 @@ export function ContextPanelOutlet() {
           <SheetTitle>{content.title}</SheetTitle>
           <SheetDescription>{content.description}</SheetDescription>
         </SheetHeader>
-        {content.body}
+        <div className="min-h-0 overflow-y-auto">{content.body}</div>
       </SheetContent>
     </Sheet>
   );

@@ -7,6 +7,9 @@ import { CreateTaskForm } from '../components/tasks/CreateTaskForm';
 import { useTasksStore, type ScheduledTask } from '../stores/tasks';
 import { useAuthStore } from '../stores/auth';
 import { useGroupsStore } from '../stores/groups';
+import { useChatStore } from '../stores/chat';
+import type { AgentProfile } from '../types';
+import { chooseBotWorkspace } from '../utils/bot-entry';
 import { showToast } from '../utils/toast';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -29,6 +32,18 @@ function taskTitle(task: ScheduledTask): string {
 }
 
 export function TasksPage() {
+  const [searchParams] = useSearchParams();
+  if (searchParams.get('view') === 'attention') return <AttentionRuns />;
+  return <TaskManagement />;
+}
+
+export function TaskManagement({
+  dot,
+  preferredWorkspaceJid,
+}: {
+  dot?: Pick<AgentProfile, 'id' | 'is_default'>;
+  preferredWorkspaceJid?: string;
+}) {
   const {
     tasks,
     loading,
@@ -45,6 +60,31 @@ export function TasksPage() {
     stopTaskRun,
   } = useTasksStore();
   const { user } = useAuthStore();
+  const groups = useChatStore((s) => s.groups);
+  const dotGroups = dot
+    ? Object.fromEntries(
+        Object.entries(groups).filter(
+          ([jid, group]) =>
+            jid.startsWith('web:') && group.agent_profile_id === dot.id,
+        ),
+      )
+    : {};
+  const dotFolders = new Set(
+    Object.values(dotGroups).map((group) => group.folder),
+  );
+  const visibleTasks = dot
+    ? tasks.filter((task) => dotFolders.has(task.group_folder))
+    : tasks;
+  const taskTargets = Object.fromEntries(
+    Object.entries(dotGroups).filter(([jid]) => Object.hasOwn(groupNames, jid)),
+  );
+  const targetJid = dot
+    ? preferredWorkspaceJid
+      ? taskTargets[preferredWorkspaceJid]
+        ? preferredWorkspaceJid
+        : undefined
+      : chooseBotWorkspace(dot, taskTargets)?.jid
+    : undefined;
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [view, setView] = useState<TaskView>('current');
   const [query, setQuery] = useState('');
@@ -56,28 +96,25 @@ export function TasksPage() {
     new Set(),
   );
   const isAdmin = user?.role === 'admin';
-  const [searchParams] = useSearchParams();
-  const attentionView = searchParams.get('view') === 'attention';
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
 
   // Poll while any task is parsing/running so UI updates when done.
-  const hasParsing = tasks.some((task) => task.status === 'parsing');
+  const hasParsing = visibleTasks.some((task) => task.status === 'parsing');
   const liveRunStatuses = new Set([
     'queued',
     'running',
     'recovering',
     'retry_wait',
   ]);
-  const hasRunning =
-    runningTaskIds.size > 0 ||
-    tasks.some(
-      (task) =>
-        task.current_run && liveRunStatuses.has(task.current_run.status),
-    );
-  const hasNotificationWork = tasks.some(
+  const hasRunning = visibleTasks.some(
+    (task) =>
+      runningTaskIds.has(task.id) ||
+      (task.current_run && liveRunStatuses.has(task.current_run.status)),
+  );
+  const hasNotificationWork = visibleTasks.some(
     (task) =>
       task.last_run_summary?.notification_status === 'pending' ||
       !!task.last_run_summary?.notification_available_at,
@@ -116,7 +153,7 @@ export function TasksPage() {
       data.executionMode,
       data.scriptCommand,
       data.notifyChannels,
-      data.chatJid,
+      targetJid ?? data.chatJid,
       data.contextMode,
     );
     if (!useTasksStore.getState().error) {
@@ -223,8 +260,8 @@ export function TasksPage() {
     }
   };
 
-  const deletedTasks = tasks.filter((task) => !!task.deleted_at);
-  const liveTasks = tasks.filter((task) => !task.deleted_at);
+  const deletedTasks = visibleTasks.filter((task) => !!task.deleted_at);
+  const liveTasks = visibleTasks.filter((task) => !task.deleted_at);
   const enabledTasks = liveTasks.filter((task) => task.status === 'active');
   const pausedTasks = liveTasks.filter((task) => task.status === 'paused');
   const retryingCount = liveTasks.filter(
@@ -411,7 +448,120 @@ export function TasksPage() {
     );
   };
 
-  if (attentionView) return <AttentionRuns />;
+  const taskActions = (
+    <>
+      {showCreateForm && (!dot || targetJid) && (
+        <CreateTaskForm
+          key={targetJid}
+          onSubmit={handleCreateTask}
+          onClose={() => {
+            setShowCreateForm(false);
+            loadTasks();
+          }}
+          isAdmin={isAdmin}
+          fixedChatJid={targetJid}
+        />
+      )}
+      <ConfirmDialog
+        open={!!pendingAction}
+        onClose={() => {
+          if (!actionLoading) setPendingAction(null);
+        }}
+        onConfirm={executePendingAction}
+        title={
+          pendingIsPurge
+            ? pendingCount === 1
+              ? `永久删除“${pendingTask ? taskTitle(pendingTask) : '这个任务'}”？`
+              : `清空回收站中的 ${pendingCount} 个任务？`
+            : `将“${pendingTask ? taskTitle(pendingTask) : '这个任务'}”移到回收站？`
+        }
+        message={
+          pendingIsPurge
+            ? '任务定义和全部运行历史都会被永久删除，此操作无法撤销。'
+            : '任务将停止后续触发，但会保留配置和运行历史；你可以稍后从回收站恢复。'
+        }
+        confirmText={
+          pendingIsPurge
+            ? pendingCount === 1
+              ? '永久删除任务'
+              : '永久删除全部任务'
+            : '移到回收站'
+        }
+        confirmVariant="danger"
+        loading={actionLoading}
+      />
+    </>
+  );
+
+  if (dot) {
+    const scopedTasks = view === 'trash' ? deletedTasks : liveTasks;
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {targetJid && !showCreateForm && (
+            <Button type="button" onClick={() => setShowCreateForm(true)}>
+              <Plus /> 创建任务
+            </Button>
+          )}
+          {!showCreateForm && (deletedTasks.length > 0 || view === 'trash') && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setView(view === 'trash' ? 'current' : 'trash')}
+            >
+              {view === 'trash' ? '返回定时任务' : '回收站'}
+            </Button>
+          )}
+        </div>
+        {error && (
+          <div
+            role="alert"
+            className="flex flex-wrap items-center gap-2 text-error"
+          >
+            <span>{error}</span>
+            <Button type="button" variant="outline" onClick={loadTasks}>
+              刷新任务
+            </Button>
+          </div>
+        )}
+        {showCreateForm ? null : loading && visibleTasks.length === 0 ? (
+          <p role="status" className="text-muted-foreground">
+            正在加载定时任务…
+          </p>
+        ) : scopedTasks.length > 0 ? (
+          <div className="divide-y divide-border border-t border-border">
+            {scopedTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                inDotDetails
+                isRunning={runningTaskIds.has(task.id)}
+                isMutating={mutatingTaskIds.has(task.id)}
+                onPause={handlePause}
+                onResume={handleResume}
+                onDelete={handleDelete}
+                onRunNow={runTaskNow}
+                onStopRun={handleStopRun}
+                onRestore={handleRestore}
+                onPurge={handlePurge}
+              />
+            ))}
+          </div>
+        ) : (
+          !error && (
+            <p className="text-muted-foreground">
+              {view === 'trash'
+                ? '回收站是空的。'
+                : targetJid
+                  ? '这个 Dot 还没有定时任务。你也可以在聊天里告诉它什么时候执行。'
+                  : '这个 Dot 暂无可用的任务工作区。开始对话后，即可在这里安排定时任务。'}
+            </p>
+          )
+        )}
+        {taskActions}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-background">
@@ -510,45 +660,7 @@ export function TasksPage() {
         )}
       </div>
 
-      {showCreateForm && (
-        <CreateTaskForm
-          onSubmit={handleCreateTask}
-          onClose={() => {
-            setShowCreateForm(false);
-            loadTasks();
-          }}
-          isAdmin={isAdmin}
-        />
-      )}
-
-      <ConfirmDialog
-        open={!!pendingAction}
-        onClose={() => {
-          if (!actionLoading) setPendingAction(null);
-        }}
-        onConfirm={executePendingAction}
-        title={
-          pendingIsPurge
-            ? pendingCount === 1
-              ? `永久删除“${pendingTask ? taskTitle(pendingTask) : '这个任务'}”？`
-              : `清空回收站中的 ${pendingCount} 个任务？`
-            : `将“${pendingTask ? taskTitle(pendingTask) : '这个任务'}”移到回收站？`
-        }
-        message={
-          pendingIsPurge
-            ? '任务定义和全部运行历史都会被永久删除，此操作无法撤销。'
-            : '任务将停止后续触发，但会保留配置和运行历史；你可以稍后从回收站恢复。'
-        }
-        confirmText={
-          pendingIsPurge
-            ? pendingCount === 1
-              ? '永久删除任务'
-              : `永久删除 ${pendingCount} 个任务`
-            : '移到回收站'
-        }
-        confirmVariant="danger"
-        loading={actionLoading}
-      />
+      {taskActions}
     </div>
   );
 }
