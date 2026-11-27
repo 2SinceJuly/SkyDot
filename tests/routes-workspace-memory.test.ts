@@ -141,6 +141,30 @@ describe('Workspace Memory v2 routes', () => {
     ).toBe(false);
   });
 
+  test('workspace summary respects ownership and omits expired items', async () => {
+    const summaryPath = `/workspaces/${encodeURIComponent(WORKSPACE_A)}/summary`;
+    expect((await request(summaryPath)).body).toEqual({
+      storeRevision: 0,
+      activeCount: 0,
+    });
+    expect(
+      (await create(WORKSPACE_A, 'Current workspace decision')).status,
+    ).toBe(201);
+    expect(
+      (
+        await create(WORKSPACE_A, 'Expired workspace decision', {
+          expiresAt: '2020-01-01T00:00:00.000Z',
+        })
+      ).status,
+    ).toBe(201);
+    expect((await request(summaryPath)).body).toEqual({
+      storeRevision: 2,
+      activeCount: 1,
+    });
+    asUser('bob', 'admin');
+    expect((await request(summaryPath)).status).toBe(404);
+  });
+
   test('owner can create, list, get, search and inspect immutable versions', async () => {
     const created = await create(
       WORKSPACE_A,

@@ -40,6 +40,9 @@ async function prepareHarness(
 ) {
   // This file tests an isolated UI harness, never the developer's port-3000
   // backend. Runtime discovery is a fixture just like its seeded Chat store.
+  await page.route('**/api/memory/workspaces/*/summary', (route) =>
+    route.fulfill({ json: { storeRevision: 0, activeCount: 0 } }),
+  );
   await page.route('**/api/groups/*/session-runtimes', (route) =>
     route.fulfill(
       options.canModify === false

@@ -18,6 +18,7 @@ import {
   mainWorkspaceForBot,
 } from '../components/common/bot-avatar/product-state';
 import { useConnectionStatus } from '../hooks/useConnectionStatus';
+import { useQuickBot } from '../components/agents/QuickBotDialog';
 import { useProductContext } from '../components/layout/ContextPanel';
 import { useAgentProfilesStore } from '../stores/agent-profiles';
 import { useChatStore } from '../stores/chat';
@@ -36,6 +37,7 @@ export function BotsPage() {
   const teamView = query.get('view') === 'team';
   const historyRequested = query.get('history') === '1';
   const context = useProductContext();
+  const quickBot = useQuickBot();
   const home = useRef<HTMLElement>(null);
   const [activity, setActivity] = useState<TeamOverview['activity']>({});
   const [activityKnown, setActivityKnown] = useState(false);
@@ -297,20 +299,35 @@ export function BotsPage() {
       </main>
     );
   return (
-    <main ref={home} className="chief-page" aria-label="我的 Dot">
+    <main
+      ref={home}
+      className={teamView ? 'chief-page product-team-directory' : 'chief-page'}
+      aria-label="我的 Dot"
+    >
       {teamView ? (
         <header className="team-page-heading">
           <div>
             <p className="product-metadata">MY TEAM</p>
-            <h1 className="product-page-title">我的 Dot</h1>
+            <h1 className="product-page-title">我的 Dot 与群聊</h1>
           </div>
-          <Link
-            to="/agent-profiles?create=1"
-            className="product-action-secondary"
-          >
-            <Plus size={16} />
-            创建 Bot
-          </Link>
+          {quickBot ? (
+            <button
+              type="button"
+              className="product-action-primary"
+              onClick={quickBot.show}
+            >
+              <Plus size={16} />
+              新建 Dot / 群聊
+            </button>
+          ) : (
+            <Link
+              to="/agent-profiles?create=1"
+              className="product-action-secondary"
+            >
+              <Plus size={16} />
+              创建 Bot
+            </Link>
+          )}
         </header>
       ) : null}
 

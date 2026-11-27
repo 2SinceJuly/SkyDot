@@ -55,6 +55,7 @@ import { botGroupReaders } from './bot-groups/store.js';
 import { subscribeBotGroupUpdates } from './bot-groups/events.js';
 import groupRoutes from './routes/groups.js';
 import memoryRoutes from './routes/memory.js';
+import smartHomeRoutes from './routes/smart-home.js';
 import configRoutes, { injectConfigDeps } from './routes/config.js';
 import tasksRoutes from './routes/tasks.js';
 import goalRoutes from './routes/goals.js';
@@ -288,6 +289,7 @@ app.route('/api/bot-groups', botGroupRoutes);
 app.route('/api/groups', groupRoutes);
 app.route('/api/groups', fileRoutes); // File routes also under /api/groups
 app.route('/api/memory', memoryRoutes);
+app.route('/api/smart-home', smartHomeRoutes);
 app.route('/api/config', configRoutes);
 app.route('/api/tasks', tasksRoutes);
 app.route('/api/goals', goalRoutes);

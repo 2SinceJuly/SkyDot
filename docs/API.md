@@ -37,6 +37,7 @@
 | `/api/personal-memory`             | `src/routes/personal-memory.ts`    | 显式授权的个人记忆与修订范围  |
 | `/api/mem0-private`                | `src/routes/mem0-private.ts`       | 私聊 Mem0 配置                |
 | `/api/memory`                      | `src/routes/memory.ts`             | Workspace Memory v2           |
+| `/api/smart-home`                  | `src/routes/smart-home.ts`         | Home Assistant 设备和场景     |
 | `/api/skills`                      | `src/routes/skills.ts`             | 用户 Skills                   |
 | `/api/mcp-servers`                 | `src/routes/mcp-servers.ts`        | 用户/系统 MCP                 |
 | `/api/plugins`                     | `src/routes/plugins.ts`            | Plugin Catalog 与用户启用状态 |
@@ -425,7 +426,26 @@ Plugins：
 - `POST /api/plugins/sync-host`
 - `GET /api/plugins/available-on-host`
 
+## 智能家居
+
+`GET /api/smart-home` 返回已授权的 Home Assistant 实体、状态和动作类型。
+`POST /api/smart-home/commands` 接受 `{ entityId, action }`，其中 action 为
+`turn_on` 或 `turn_off`。开关、灯、风扇和 input_boolean 可以开关，场景可以激活。
+其他实体仅显示状态。两个接口都要求 `manage_system_config`。
+
+在启动 SkyDot 的环境中设置：
+
+- `SKYDOT_HOME_ASSISTANT_URL` 为 Home Assistant 实例地址。
+- `SKYDOT_HOME_ASSISTANT_TOKEN_FILE` 为只允许服务账户读取的长效令牌文件路径。
+- `SKYDOT_HOME_ASSISTANT_ENTITIES` 为逗号分隔的允许列表，例如
+  `light.study,scene.goodnight`。已接入 Home Assistant 的米家设备也可按实体授权。
+
+只有在 Home Assistant 确实返回成功时才报告操作已接收。设备状态从 Home Assistant
+重新读取。开启回环演示模式时，设备接口显示为未连接。
+
 ## Workspace Memory v2
+
+`GET /api/memory/workspaces/:workspaceJid/summary` 返回工作区记忆版本和当前可召回的活跃条目数。
 
 Workspace Memory 是 Workspace 范围内、跨 Session 复用的结构化知识。客户端必须先从
 `GET /api/workspaces` 的 `workspaces[].jid` 取得 Workspace JID，再把它作为

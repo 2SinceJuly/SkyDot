@@ -15,6 +15,7 @@ import {
   createWorkspaceMemory,
   forgetWorkspaceMemory,
   getWorkspaceMemory,
+  getWorkspaceMemorySummary,
   listWorkspaceMemory,
   listWorkspaceMemoryVersions,
   searchWorkspaceMemory,
@@ -71,6 +72,19 @@ memoryRoutes.use(
       ),
   }),
 );
+
+memoryRoutes.get('/workspaces/:workspaceJid/summary', (c) => {
+  try {
+    return c.json(
+      getWorkspaceMemorySummary({
+        actor: actor(c.get('user')),
+        workspaceJid: c.req.param('workspaceJid'),
+      }),
+    );
+  } catch (error) {
+    return serviceError(c, error);
+  }
+});
 
 memoryRoutes.get('/workspaces/:workspaceJid/items/search', (c) => {
   const parsed = WorkspaceMemorySearchQuerySchema.safeParse(c.req.query());

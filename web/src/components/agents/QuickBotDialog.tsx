@@ -7,6 +7,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -21,7 +22,6 @@ import {
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { BotAvatar } from '../common/BotAvatar';
-import { avatarColor } from '../common/bot-avatar/identity';
 import { BOT_AVATAR_SHAPES } from '../../../../src/bot-avatar-shapes';
 import { useAuthStore } from '../../stores/auth';
 import { useAgentProfilesStore } from '../../stores/agent-profiles';
@@ -103,54 +103,55 @@ export function BotShapePicker({
   onShape: (value: string) => void;
   onColor: (value: string) => void;
 }) {
-  const ink = avatarColor(color)?.['--avatar-ink'] ?? '#fff';
   return (
-    <div className="space-y-5">
-      <div
-        role="group"
-        aria-label="头像形状"
-        className="mx-auto grid max-w-sm grid-cols-5 gap-1 sm:gap-2"
-      >
-        {BOT_AVATAR_SHAPES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            aria-label={item.label + '形状'}
-            aria-pressed={shape === item.id}
-            disabled={disabled}
-            onClick={() => onShape(item.id)}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl outline-none aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-          >
-            <svg viewBox="0 0 64 64" className="size-10" aria-hidden="true">
-              <path d={item.path} fill={color} />
-              <rect x="22" y="25" width="6" height="12" rx="3" fill={ink} />
-              <rect x="37" y="25" width="6" height="12" rx="3" fill={ink} />
-            </svg>
-          </button>
-        ))}
-      </div>
-      <div
-        role="group"
-        aria-label="头像颜色"
-        className="mx-auto flex max-w-sm flex-wrap justify-center gap-1"
-      >
-        {BOT_COLORS.map(([name, value]) => (
-          <button
-            key={value}
-            type="button"
-            aria-label={name + '头像'}
-            aria-pressed={color === value}
-            disabled={disabled}
-            onClick={() => onColor(value)}
-            className="flex size-11 items-center justify-center rounded-full outline-none aria-pressed:ring-2 aria-pressed:ring-primary focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-          >
-            <span
-              className="size-7 rounded-full border border-foreground/10"
-              style={{ backgroundColor: value }}
-            />
-          </button>
-        ))}
-      </div>
+    <div className="space-y-3 rounded-xl border border-border bg-surface p-3">
+      <fieldset className="min-w-0">
+        <legend className="mb-1.5 text-xs font-medium text-muted-foreground">
+          头像形状
+        </legend>
+        <div
+          className="grid grid-cols-5 gap-1"
+          style={{ '--dot-choice-color': color } as CSSProperties}
+        >
+          {BOT_AVATAR_SHAPES.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-label={item.label + '形状'}
+              aria-pressed={shape === item.id}
+              disabled={disabled}
+              onClick={() => onShape(item.id)}
+              className="dot-shape-choice"
+            >
+              <svg viewBox="0 0 64 64" className="size-7" aria-hidden="true">
+                <path d={item.path} />
+                <rect x="21" y="25" width="6" height="10" rx="3" />
+                <rect x="38" y="25" width="6" height="10" rx="3" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="min-w-0">
+        <legend className="mb-1 text-xs font-medium text-muted-foreground">
+          头像颜色
+        </legend>
+        <div className="flex flex-wrap">
+          {BOT_COLORS.map(([name, value]) => (
+            <button
+              key={value}
+              type="button"
+              aria-label={name + '头像'}
+              aria-pressed={color === value}
+              disabled={disabled}
+              onClick={() => onColor(value)}
+              className="dot-color-choice"
+            >
+              <span style={{ backgroundColor: value }} />
+            </button>
+          ))}
+        </div>
+      </fieldset>
     </div>
   );
 }
@@ -476,11 +477,11 @@ export function QuickBotProvider({ children }: { children: ReactNode }) {
             </button>
           </SheetHeader>
           {creating && (
-            <div className="border-b px-5 py-3">
+            <div className="px-5">
               <div
                 role="group"
                 aria-label="新建类型"
-                className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1"
+                className="dot-create-tabs"
               >
                 <button
                   type="button"
@@ -490,7 +491,7 @@ export function QuickBotProvider({ children }: { children: ReactNode }) {
                     if (!inFlight.current && !busyRef.current)
                       openView('create');
                   }}
-                  className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-lg px-2 text-sm text-muted-foreground aria-pressed:bg-background aria-pressed:font-medium aria-pressed:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  className="dot-create-tab"
                 >
                   <Plus className="size-4" aria-hidden="true" /> 新建 Dot
                 </button>
@@ -499,7 +500,7 @@ export function QuickBotProvider({ children }: { children: ReactNode }) {
                   aria-pressed={view === 'group-create'}
                   disabled={busy}
                   onClick={createGroup}
-                  className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-lg px-2 text-sm text-muted-foreground aria-pressed:bg-background aria-pressed:font-medium aria-pressed:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  className="dot-create-tab"
                 >
                   <Users className="size-4" aria-hidden="true" /> 新建群聊
                 </button>
@@ -535,29 +536,32 @@ export function QuickBotProvider({ children }: { children: ReactNode }) {
                   event.preventDefault();
                   void create();
                 }}
-                className="min-h-0 space-y-6 overflow-y-auto px-5 py-6"
+                className="min-h-0 space-y-4 overflow-y-auto px-5 py-5"
               >
-                <div className="flex justify-center">
+                <div className="flex items-end gap-3">
                   <BotAvatar
                     botId={draft.request_id}
                     name={draft.name || '新 Dot'}
                     shape={draft.avatar_shape}
                     color={draft.avatar_color}
-                    size="xl"
+                    size="lg"
+                    className="dot-create-preview"
                   />
+                  <label className="min-w-0 flex-1 space-y-1.5">
+                    <span className="block text-xs font-medium text-muted-foreground">
+                      Dot 名称
+                    </span>
+                    <Input
+                      ref={nameInput}
+                      value={draft.name}
+                      maxLength={80}
+                      disabled={locked || busy}
+                      onChange={(event) => field({ name: event.target.value })}
+                      placeholder="例如：投资研究、内容主笔"
+                      className="dot-create-name min-h-11"
+                    />
+                  </label>
                 </div>
-                <label className="block">
-                  <span className="sr-only">Dot 名称</span>
-                  <Input
-                    ref={nameInput}
-                    value={draft.name}
-                    maxLength={80}
-                    disabled={locked || busy}
-                    onChange={(event) => field({ name: event.target.value })}
-                    placeholder="给你的 Dot 起个名字"
-                    className="min-h-11 text-center text-base"
-                  />
-                </label>
                 <BotShapePicker
                   shape={draft.avatar_shape}
                   color={draft.avatar_color}

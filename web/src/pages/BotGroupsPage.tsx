@@ -3,7 +3,6 @@ import { SettingsDrawerTrigger } from '../components/layout/SettingsDrawer';
 import { ConversationMessageBody } from '../components/chat/ConversationMessageBody';
 import { GroupConversationMessage } from '../features/bot-groups/GroupConversationMessage';
 import { joinsPreviousMessage } from '../lib/message-grouping';
-import { PocketTrigger } from '../features/pocket/PocketPanel';
 import { botGroupMessageType } from '../../../src/bot-groups/message-projection';
 import { DiscussionWorkPanel } from '../features/bot-groups/DiscussionWorkPanel';
 import { DurableApprovals } from '../features/pocket/DurableApprovals';
@@ -538,7 +537,6 @@ function GroupConversation({ id }: { id: string }) {
               .join(' · ')}
           </p>
         </div>
-        <PocketTrigger />
         <SettingsDrawerTrigger className="md:hidden shrink-0">
           <Settings size={18} />
         </SettingsDrawerTrigger>

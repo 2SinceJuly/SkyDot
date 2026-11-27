@@ -5,6 +5,7 @@ import {
   forgetWorkspaceMemoryItem,
   getMutableWorkspaceMemoryItem,
   getWorkspaceMemoryItem,
+  getWorkspaceMemoryOverview,
   listRecallableWorkspaceMemoryItems,
   listWorkspaceMemoryItems,
   listWorkspaceMemoryVersions as listVersionsFromStore,
@@ -281,6 +282,15 @@ function requestHash(value: unknown): string {
     .createHash('sha256')
     .update(JSON.stringify(value))
     .digest('hex');
+}
+
+export function getWorkspaceMemorySummary(input: WorkspaceMemoryBaseRequest) {
+  authorizeWorkspace(input, 'read');
+  try {
+    return getWorkspaceMemoryOverview(input.workspaceJid);
+  } catch (error) {
+    translateStoreError(error);
+  }
 }
 
 export function listWorkspaceMemory(

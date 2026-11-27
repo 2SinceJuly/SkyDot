@@ -14,6 +14,8 @@ import {
   Search,
   MessageCircle,
   Bell,
+  Database,
+  SlidersHorizontal,
   Target,
 } from 'lucide-react';
 import { useChatStore } from '../../stores/chat';
@@ -70,11 +72,18 @@ export function UnifiedSidebar({
   const navigate = useNavigate();
 
   const user = useAuthStore((s) => s.user);
+  const canManageSystem = useAuthStore((s) =>
+    s.hasPermission('manage_system_config'),
+  );
   const appearance = useAuthStore((s) => s.appearance);
   const profiles = useAgentProfilesStore((s) => s.profiles);
   const chief = profiles.find(
     (p) =>
       p.owner_user_id === user?.id && p.is_default && p.status === 'active',
+  );
+  const ownedProfiles = profiles.filter(
+    (profile) =>
+      profile.owner_user_id === user?.id && profile.status === 'active',
   );
   const goalsEnabled = useGoalsAvailability((s) => s.enabled);
   const userInitial = (user?.display_name ||
@@ -214,11 +223,11 @@ export function UnifiedSidebar({
 
   const handleGroupSelect = (jid: string, folder: string) => {
     selectGroup(jid);
-    navigate(`/chat/${folder}`);
+    navigate(`/chat/${encodeURIComponent(folder)}`);
   };
   const handleCreated = (jid: string, folder: string) => {
     selectGroup(jid);
-    navigate(`/chat/${folder}`);
+    navigate(`/chat/${encodeURIComponent(folder)}`);
   };
 
   const renderAgentSection = (section: (typeof agentSections)[number]) => {
@@ -340,17 +349,17 @@ export function UnifiedSidebar({
                 type="button"
                 aria-label="Dot 和对话"
                 onClick={quickBot?.browse}
-                className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left text-sm text-muted-foreground"
+                className="product-rail-search-button"
               >
-                <Search size={16} />
-                <span className="truncate">Dot 和对话</span>
+                <Search size={14} />
+                <span className="truncate">搜索</span>
               </button>
               <button
                 aria-label="新建 Dot"
                 onClick={quickBot?.show}
-                className="product-icon-action"
+                className="product-rail-create-button"
               >
-                <Plus size={18} />
+                <Plus size={15} />
               </button>
             </div>
           )}
@@ -395,6 +404,23 @@ export function UnifiedSidebar({
             })}
           {!collapsed && (
             <div className="conversation-rail-list">
+              {chief && (
+                <NavLink
+                  to={
+                    homeGroup
+                      ? '/chat/' +
+                        encodeURIComponent(homeGroup.folder) +
+                        '?bot=' +
+                        encodeURIComponent(chief.id)
+                      : '/bots'
+                  }
+                  className="product-nav-link product-dot-row"
+                  aria-label={chief.name}
+                >
+                  <BotIdentityAvatar bot={profileIdentity(chief)} size="sm" />
+                  <span className="truncate">{chief.name}</span>
+                </NavLink>
+              )}
               <NavLink
                 to="/bots?view=team"
                 aria-label="我的 Dot"
@@ -402,42 +428,39 @@ export function UnifiedSidebar({
               >
                 DOTS
               </NavLink>
-              {profiles
-                .filter(
-                  (profile) =>
-                    profile.owner_user_id === user?.id &&
-                    profile.status === 'active',
-                )
+              {ownedProfiles
+                .filter((profile) => !profile.is_default)
                 .map((profile) => {
-                  const recent = allGroups.find(
-                    (group) =>
-                      group.agent_profile_id === profile.id &&
-                      group.lastMessage,
+                  const workspace = agentSections.find(
+                    (section) => section.id === profile.id,
                   );
+                  const direct =
+                    workspace &&
+                    getAgentNavigationTargets(workspace).directGroup;
+                  const conversation = direct
+                    ? '/chat/' + encodeURIComponent(direct.folder)
+                    : null;
+                  const path = conversation
+                    ? conversation + '?bot=' + encodeURIComponent(profile.id)
+                    : '/bots?profile=' + encodeURIComponent(profile.id);
+                  const active = conversation
+                    ? location.pathname === conversation
+                    : location.pathname === '/bots' &&
+                      new URLSearchParams(location.search).get('profile') ===
+                        profile.id;
                   return (
                     <Link
                       key={profile.id}
-                      className="product-nav-link"
-                      to={'/bots?profile=' + encodeURIComponent(profile.id)}
-                      aria-current={
-                        new URLSearchParams(location.search).get('bot') ===
-                        profile.id
-                          ? 'page'
-                          : undefined
-                      }
+                      className="product-nav-link product-dot-row"
+                      to={path}
+                      aria-label={profile.name}
+                      aria-current={active ? 'page' : undefined}
                     >
                       <BotIdentityAvatar
                         bot={profileIdentity(profile)}
                         size="sm"
                       />
-                      <span className="min-w-0 flex-1 truncate">
-                        {profile.name}
-                        {recent?.lastMessage && (
-                          <span className="conversation-rail-preview">
-                            {recent.lastMessage}
-                          </span>
-                        )}
-                      </span>
+                      <span className="truncate">{profile.name}</span>
                     </Link>
                   );
                 })}
@@ -507,6 +530,7 @@ export function UnifiedSidebar({
                 >
                   <Plus size={16} /> 新建工作区
                 </button>
+                <AdvancedNavigation />
                 {loading && !allGroups.length ? (
                   <SkeletonCardList count={2} compact />
                 ) : (
@@ -517,113 +541,151 @@ export function UnifiedSidebar({
                   </>
                 )}
               </details>
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="product-nav-link product-rail-collapse"
+                aria-label="收起侧栏"
+                aria-expanded={true}
+              >
+                <PanelLeftClose />
+                <span className="nav-label">收起侧栏</span>
+              </button>
             </div>
           )}
-          <button
-            type="button"
-            onClick={() =>
-              !window.matchMedia('(min-width: 1101px)').matches && quickBot
-                ? quickBot.browse()
-                : onToggleCollapse()
-            }
-            className="product-nav-link"
-            aria-label={collapsed ? '展开侧栏' : '收起侧栏'}
-            aria-expanded={!collapsed}
-          >
-            <PanelLeftClose />
-            <span className="nav-label">收起侧栏</span>
-          </button>
+          {collapsed && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="product-nav-link product-rail-collapse"
+              aria-label="展开侧栏"
+              aria-expanded={false}
+            >
+              <PanelLeftClose />
+            </button>
+          )}
 
-          {/* Expanded rail already gives the remaining height to its list. */}
           {collapsed && <div className="flex-1" aria-hidden="true" />}
 
-          <Link
-            to={workRailPath(goalsEnabled, 'work')}
-            className="product-nav-link"
-            aria-label="我的工作"
-            aria-current={
-              productNavActive(
-                workRailPath(goalsEnabled, 'work'),
-                location.pathname,
-                location.search,
-              )
-                ? 'page'
-                : undefined
-            }
-          >
-            <Target />
-            <span className="nav-label">我的工作</span>
-          </Link>
-          <Link
-            to={workRailPath(goalsEnabled, 'attention')}
-            className="product-nav-link"
-            aria-label="需要你处理"
-            aria-current={
-              productNavActive(
-                workRailPath(goalsEnabled, 'attention'),
-                location.pathname,
-                location.search,
-              )
-                ? 'page'
-                : undefined
-            }
-          >
-            <Bell />
-            <span className="nav-label">需要你处理</span>
-            {secondary.owner === user?.id &&
-              secondary.attention !== null &&
-              secondary.attention > 0 && (
-                <span className="attention-count">{secondary.attention}</span>
-              )}
-          </Link>
-          <AdvancedNavigation />
-          <NavLink
-            to="/settings"
-            className="product-nav-link"
-            aria-label="设置"
-          >
-            <Settings />
-            <span className="nav-label">设置</span>
-          </NavLink>
+          <div className="product-rail-footer">
+            <Link
+              to={workRailPath(goalsEnabled, 'work')}
+              className="product-nav-link"
+              aria-label="我的工作"
+              aria-current={
+                productNavActive(
+                  workRailPath(goalsEnabled, 'work'),
+                  location.pathname,
+                  location.search,
+                )
+                  ? 'page'
+                  : undefined
+              }
+            >
+              <Target />
+              <span className="nav-label">我的工作</span>
+            </Link>
+            <Link
+              to={workRailPath(goalsEnabled, 'attention')}
+              className="product-nav-link"
+              aria-label="需要你处理"
+              aria-current={
+                productNavActive(
+                  workRailPath(goalsEnabled, 'attention'),
+                  location.pathname,
+                  location.search,
+                )
+                  ? 'page'
+                  : undefined
+              }
+            >
+              <Bell />
+              <span className="nav-label">需要你处理</span>
+              {secondary.owner === user?.id &&
+                secondary.attention !== null &&
+                secondary.attention > 0 && (
+                  <span className="attention-count">{secondary.attention}</span>
+                )}
+            </Link>
+            <NavLink
+              to="/memory"
+              className="product-nav-link"
+              aria-label="工作区记忆"
+            >
+              <Database />
+              <span className="nav-label">工作区记忆</span>
+            </NavLink>
+            <NavLink
+              to={
+                canManageSystem
+                  ? '/capabilities/smart-home'
+                  : '/capabilities/skills'
+              }
+              className="product-nav-link"
+              aria-label={canManageSystem ? '高级功能与家居' : '能力库'}
+              aria-current={
+                location.pathname.startsWith('/capabilities')
+                  ? 'page'
+                  : undefined
+              }
+            >
+              <SlidersHorizontal />
+              <span className="nav-label">
+                {canManageSystem ? '高级功能与家居' : '能力库'}
+              </span>
+            </NavLink>
+            {collapsed && <AdvancedNavigation />}
+            <NavLink
+              to="/settings"
+              className="product-nav-link"
+              aria-label="设置"
+            >
+              <Settings />
+              <span className="nav-label">设置</span>
+            </NavLink>
 
-          {/* User avatar popover */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button aria-label="账号菜单" className="product-nav-link">
-                <EmojiAvatar
-                  imageUrl={user?.avatar_url}
-                  emoji={user?.avatar_emoji}
-                  color={user?.avatar_color}
-                  fallbackChar={userInitial}
-                  size="md"
-                  className="w-8 h-8"
-                />
-                <span className="nav-label truncate">
+            {/* User avatar popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  aria-label="账号菜单"
+                  className="product-nav-link product-rail-account"
+                >
+                  <EmojiAvatar
+                    imageUrl={user?.avatar_url}
+                    emoji={user?.avatar_emoji}
+                    color={user?.avatar_color}
+                    fallbackChar={userInitial}
+                    size="md"
+                    className="w-7 h-7"
+                  />
+                  <span className="nav-label truncate">
+                    {user?.display_name || user?.username}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="right" align="end" className="w-44 p-1">
+                <div className="px-3 py-2 text-xs font-medium text-muted-foreground truncate border-b border-border mb-1">
                   {user?.display_name || user?.username}
-                </span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent side="right" align="end" className="w-44 p-1">
-              <div className="px-3 py-2 text-xs font-medium text-muted-foreground truncate border-b border-border mb-1">
-                {user?.display_name || user?.username}
-              </div>
-              <button
-                onClick={() => navigate('/settings?tab=profile')}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent text-foreground cursor-pointer"
-              >
-                <UserCog className="w-4 h-4" /> 个人设置
-              </button>
-              <button
-                onClick={async () => {
-                  await useAuthStore.getState().logout();
-                  navigate('/login');
-                }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-destructive/10 text-destructive cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" /> 退出登录
-              </button>
-            </PopoverContent>
-          </Popover>
+                </div>
+                <button
+                  onClick={() => navigate('/settings?tab=profile')}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent text-foreground cursor-pointer"
+                >
+                  <UserCog className="w-4 h-4" /> 个人设置
+                </button>
+                <button
+                  onClick={async () => {
+                    await useAuthStore.getState().logout();
+                    navigate('/login');
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-destructive/10 text-destructive cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" /> 退出登录
+                </button>
+              </PopoverContent>
+            </Popover>
+          </div>
         </nav>
       </div>
 
