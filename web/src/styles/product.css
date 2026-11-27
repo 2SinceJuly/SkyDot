@@ -1915,3 +1915,107 @@ html.dark [data-slot='select-trigger'][data-state='open'] {
   border: 1px solid var(--border);
   border-radius: var(--radius-surface);
 }
+
+.dot-create-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.dot-create-tab {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 2px solid transparent;
+  padding-inline: 2px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.dot-create-tab[aria-pressed='true'] {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dot-create-preview.bot-avatar {
+  margin-bottom: 2px;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.dot-create-preview.bot-avatar[data-state] .bot-avatar-visual,
+.dot-create-preview.bot-avatar[data-state] .bot-avatar-face {
+  animation: none;
+}
+
+.dot-create-preview .bot-avatar-shell,
+.dot-shape-choice path {
+  fill: color-mix(
+    in srgb,
+    var(--dot-choice-color, var(--avatar-shell)) 25%,
+    var(--background)
+  );
+  stroke: color-mix(
+    in srgb,
+    var(--dot-choice-color, var(--avatar-shell)) 65%,
+    var(--background)
+  );
+  stroke-width: 1.5px;
+}
+
+.dot-create-preview .bot-avatar-face,
+.dot-shape-choice rect {
+  fill: var(--fg-strong);
+}
+
+.dot-shape-choice,
+.dot-color-choice {
+  display: grid;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+}
+
+.dot-shape-choice:hover,
+.dot-color-choice:hover {
+  background: var(--surface-hover);
+}
+
+.dot-shape-choice[aria-pressed='true'],
+.dot-color-choice[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.dot-color-choice {
+  border-radius: var(--radius-pill);
+}
+
+.dot-color-choice span {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+}
+
+.dot-create-tab:focus-visible,
+.dot-shape-choice:focus-visible,
+.dot-color-choice:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dot-create-tab:disabled,
+.dot-shape-choice:disabled,
+.dot-color-choice:disabled {
+  opacity: 0.5;
+}
+
+.dot-create-name[data-slot='input']:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
