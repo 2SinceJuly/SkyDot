@@ -210,20 +210,21 @@ tasksRoutes.post('/', authMiddleware, async (c) => {
   } = validation.data;
   const authUser = c.get('user') as AuthUser;
 
-  // Auto-resolve group_folder/chat_jid from user's home group if not provided
-  let groupFolder = validation.data.group_folder;
-  let chatJid = validation.data.chat_jid;
-  if (!groupFolder || !chatJid) {
-    const homeGroup = getUserHomeGroup(authUser.id);
-    if (!homeGroup) {
-      return c.json({ error: 'User has no home group' }, 400);
-    }
-    groupFolder = groupFolder || homeGroup.folder;
-    chatJid = chatJid || homeGroup.jid;
+  const chatJid =
+    validation.data.chat_jid ?? getUserHomeGroup(authUser.id)?.jid;
+  if (!chatJid) {
+    return c.json({ error: 'User has no home group' }, 400);
   }
 
   const group = getRegisteredGroup(chatJid);
-  if (!group) return c.json({ error: 'Group not found' }, 404);
+  if (
+    !group ||
+    !canAccessGroup({ id: authUser.id, role: authUser.role }, group)
+  ) {
+    return c.json({ error: 'Group not found' }, 404);
+  }
+
+  const groupFolder = validation.data.group_folder ?? group.folder;
   if (group.folder !== groupFolder) {
     return c.json(
       { error: 'group_folder does not match chat_jid group folder' },
@@ -231,9 +232,6 @@ tasksRoutes.post('/', authMiddleware, async (c) => {
     );
   }
 
-  if (!canAccessGroup({ id: authUser.id, role: authUser.role }, group)) {
-    return c.json({ error: 'Group not found' }, 404);
-  }
   if (isHostExecutionGroup(group) && !hasHostExecutionPermission(authUser)) {
     return c.json(
       { error: 'Insufficient permissions for host execution mode' },

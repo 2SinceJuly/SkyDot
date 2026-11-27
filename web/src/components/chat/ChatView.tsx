@@ -103,9 +103,15 @@ interface ChatViewProps {
   groupJid: string;
   onBack?: () => void;
   headerLeft?: React.ReactNode;
+  onDotDetails?: () => void;
 }
 
-export function ChatView({ groupJid, onBack, headerLeft }: ChatViewProps) {
+export function ChatView({
+  groupJid,
+  onBack,
+  headerLeft,
+  onDotDetails,
+}: ChatViewProps) {
   const { mode: displayMode, toggle: toggleDisplayMode } = useDisplayMode();
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelEverOpened, setPanelEverOpened] = useState(false);
@@ -1187,9 +1193,24 @@ export function ChatView({ groupJid, onBack, headerLeft }: ChatViewProps) {
           )}
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-foreground text-[15px] truncate">
-              {isConversationTab && activeAgentTab
-                ? currentContextName
-                : agentProfileLabel}
+              {isConversationTab && activeAgentTab ? (
+                currentContextName
+              ) : onDotDetails ? (
+                <button
+                  type="button"
+                  onClick={onDotDetails}
+                  className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-lg text-left hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
+                  title="打开 Dot 详情"
+                >
+                  <span className="truncate">{agentProfileLabel}</span>
+                  <ChevronDown
+                    className="size-3.5 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </button>
+              ) : (
+                agentProfileLabel
+              )}
             </h2>
             <div className="product-conversation-meta">
               {activeMemory && (

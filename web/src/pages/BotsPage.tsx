@@ -232,7 +232,7 @@ export function BotsPage() {
     context.open({
       key: 'bot:' + profile.id,
       title: getAgentProfileDisplayName(profile.name),
-      description: '对话、当前工作与已配置能力。',
+      description: '对话、定时任务与已配置能力。',
       body: (
         <BotDetail
           profile={profile}

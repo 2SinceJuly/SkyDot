@@ -23,12 +23,16 @@ import { useClearWorkspace } from '../hooks/useClearWorkspace';
 import { type GroupEntry, compareByLastActivity } from '../utils/group-utils';
 import {
   getAgentNavigationTargets,
+  getAgentProfileDisplayName,
   getPrimaryAgentWorkspaceRows,
   groupWorkspacesByAgent,
   isAgentSectionCollapsible,
   partitionAgentWorkspaceSections,
 } from '../utils/agent-product';
 import { useDeleteWorkspace } from '../hooks/useDeleteWorkspace';
+import { useProductContext } from '../components/layout/ContextPanel';
+import { useAgentProfilesStore } from '../stores/agent-profiles';
+import { BotDetail } from '../features/team/BotDetail';
 
 export function ChatPage() {
   const { groupFolder } = useParams<{ groupFolder?: string }>();
@@ -148,6 +152,43 @@ export function ChatPage() {
   ]);
 
   const activeGroupJid = groupFolder ? routeGroupJid : currentGroup;
+  const productContext = useProductContext();
+  const activeProfileId = activeGroupJid
+    ? groups[activeGroupJid]?.agent_profile_id
+    : undefined;
+  const activeProfile = useAgentProfilesStore((s) =>
+    s.profiles.find(
+      (profile) =>
+        profile.id === activeProfileId && profile.owner_user_id === user?.id,
+    ),
+  );
+  const openDotDetails =
+    activeProfile && activeGroupJid
+      ? () => {
+          const { modelConfigs, defaultModelConfigId } =
+            useAgentProfilesStore.getState();
+          const model = modelConfigs.find(
+            (config) =>
+              config.id ===
+              (activeProfile.model_config_id ?? defaultModelConfigId),
+          )?.anthropic_model;
+          productContext.open({
+            key: `chat-dot:${activeProfile.id}`,
+            title: getAgentProfileDisplayName(activeProfile.name),
+            description: '对话、定时任务与已配置能力。',
+            body: (
+              <BotDetail
+                profile={activeProfile}
+                model={model ?? '默认模型'}
+                pending={false}
+                verified={false}
+                onChat={productContext.close}
+                preferredWorkspaceJid={activeGroupJid}
+              />
+            ),
+          });
+        }
+      : undefined;
   const chatViewRef = useRef<HTMLDivElement>(null);
 
   const handleBackToList = () => {
@@ -361,7 +402,11 @@ export function ChatPage() {
           ref={chatViewRef}
           className={`${groupFolder ? 'flex-1 min-w-0 h-full overflow-hidden' : 'hidden lg:block flex-1 min-w-0 h-full overflow-hidden'}`}
         >
-          <ChatView groupJid={activeGroupJid} onBack={handleBackToList} />
+          <ChatView
+            groupJid={activeGroupJid}
+            onBack={handleBackToList}
+            onDotDetails={openDotDetails}
+          />
         </div>
       ) : (
         <div className="hidden lg:flex flex-1 items-center justify-center bg-background rounded-t-3xl rounded-b-none mt-5 mr-5 mb-0 ml-3 relative">

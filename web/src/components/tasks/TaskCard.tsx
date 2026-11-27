@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import {
   ChevronDown,
   ChevronUp,
@@ -32,6 +33,7 @@ interface TaskCardProps {
   onPurge?: (id: string) => void;
   isRunning?: boolean;
   isMutating?: boolean;
+  inDotDetails?: boolean;
 }
 
 export function TaskCard({
@@ -45,11 +47,19 @@ export function TaskCard({
   onPurge,
   isRunning = false,
   isMutating = false,
+  inDotDetails = false,
 }: TaskCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [runningNow, setRunningNow] = useState(false);
   const navigate = useNavigate();
   const currentRun = task.current_run;
+  const lastRun = task.last_run_summary;
+  const dailyTime =
+    inDotDetails && task.schedule_type === 'cron'
+      ? /^(?:0\s+)?([0-5]?\d)\s+([01]?\d|2[0-3])\s+\*\s+\*\s+\*$/.exec(
+          task.schedule_value.trim(),
+        )
+      : null;
   const effectiveRunning =
     isRunning ||
     !!currentRun?.status.match(
@@ -140,8 +150,15 @@ export function TaskCard({
   };
 
   return (
-    <article className="scheduled-work-row">
-      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+    <article className={inDotDetails ? undefined : 'scheduled-work-row'}>
+      <div
+        className={cn(
+          'flex flex-col',
+          inDotDetails
+            ? 'py-2'
+            : 'gap-3 p-4 sm:flex-row sm:items-start sm:justify-between',
+        )}
+      >
         <button
           type="button"
           onClick={toggleExpanded}
@@ -163,7 +180,7 @@ export function TaskCard({
                   脚本
                 </span>
               )}
-              {task.execution_mode && (
+              {!inDotDetails && task.execution_mode && (
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                     task.execution_mode === 'host'
@@ -174,11 +191,15 @@ export function TaskCard({
                   {task.execution_mode === 'host' ? '宿主机' : 'Docker'}
                 </span>
               )}
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {formatContextMode(task.context_mode)}
-              </span>
+              {!inDotDetails && (
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  {formatContextMode(task.context_mode)}
+                </span>
+              )}
               <span className="text-xs text-muted-foreground">
-                {task.schedule_type === 'cron' && task.schedule_value}
+                {dailyTime
+                  ? `每天 ${dailyTime[2].padStart(2, '0')}:${dailyTime[1].padStart(2, '0')}`
+                  : task.schedule_type === 'cron' && task.schedule_value}
                 {task.schedule_type === 'interval' &&
                   `每 ${formatInterval(task.schedule_value)}`}
                 {task.schedule_type === 'once' && '单次执行'}
@@ -209,6 +230,11 @@ export function TaskCard({
                   下次：{new Date(task.next_run).toLocaleString('zh-CN')}
                 </span>
               )}
+              {inDotDetails && lastRun && !currentRun && (
+                <span className="ml-2 text-xs text-muted-foreground">
+                  上次{runStatusLabel(lastRun)}
+                </span>
+              )}
               {['failed', 'partial_failed'].includes(
                 task.last_run_summary?.notification_status || '',
               ) && <span className="ml-2 text-xs text-error">通知失败</span>}
@@ -217,18 +243,20 @@ export function TaskCard({
         </button>
 
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/chat/${task.group_folder}`);
-            }}
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-brand-50 hover:text-primary"
-            title="打开所属工作区"
-            aria-label="打开所属工作区"
-          >
-            <ExternalLink className="h-5 w-5" />
-          </button>
+          {!inDotDetails && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/chat/${task.group_folder}`);
+              }}
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-brand-50 hover:text-primary"
+              title="打开所属工作区"
+              aria-label="打开所属工作区"
+            >
+              <ExternalLink className="h-5 w-5" />
+            </button>
+          )}
 
           {onRunNow &&
             task.permissions?.can_run !== false &&
@@ -369,7 +397,7 @@ export function TaskCard({
       {/* Expanded Detail */}
       {expanded && (
         <div className="border-t border-border">
-          <TaskDetail task={task} />
+          <TaskDetail task={task} lockWorkspace={inDotDetails} />
         </div>
       )}
     </article>

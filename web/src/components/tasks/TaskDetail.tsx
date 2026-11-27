@@ -36,6 +36,7 @@ import {
 
 interface TaskDetailProps {
   task: ScheduledTask;
+  lockWorkspace?: boolean;
 }
 
 const LOG_STATUS_STYLES: Record<
@@ -133,7 +134,7 @@ function formatDuration(ms: number): string {
   return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
 }
 
-export function TaskDetail({ task }: TaskDetailProps) {
+export function TaskDetail({ task, lockWorkspace = false }: TaskDetailProps) {
   const { updateTask, loadLogs, logs } = useTasksStore();
 
   const connectedChannels = useConnectedChannels();
@@ -677,7 +678,7 @@ export function TaskDetail({ task }: TaskDetailProps) {
 
         <div>
           <div className="text-xs text-muted-foreground mb-1">所属工作区</div>
-          {editing ? (
+          {editing && !lockWorkspace ? (
             <>
               <select
                 value={editForm.chat_jid}

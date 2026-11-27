@@ -37,6 +37,7 @@ interface CreateTaskFormProps {
   }) => Promise<void>;
   onClose: () => void;
   isAdmin?: boolean;
+  fixedChatJid?: string;
 }
 
 type CreateMode = 'ai' | 'manual';
@@ -46,6 +47,7 @@ export function CreateTaskForm({
   onSubmit,
   onClose,
   isAdmin,
+  fixedChatJid,
 }: CreateTaskFormProps) {
   const [mode, setMode] = useState<CreateMode>('ai');
 
@@ -70,7 +72,8 @@ export function CreateTaskForm({
 
   // --- Shared state ---
   const [notifyChannels, setNotifyChannels] = useState<string[] | null>(null);
-  const [chatJid, setChatJid] = useState<string>('');
+  const [selectedChatJid, setChatJid] = useState('');
+  const chatJid = fixedChatJid ?? selectedChatJid;
   const [contextMode, setContextMode] = useState<'group' | 'isolated'>(
     'isolated',
   );
@@ -149,40 +152,41 @@ export function CreateTaskForm({
     if (firstHostJid && firstHostJid !== chatJid) setChatJid(firstHostJid);
   }, [isScript, chatJid, groups, groupNames, defaultWorkspaceMode]);
 
-  const renderTargetWorkspace = () => (
-    <div>
-      <label className="block text-sm font-medium text-foreground mb-2">
-        所属工作区
-      </label>
-      <Select
-        value={chatJid || '__default__'}
-        onValueChange={(value) =>
-          setChatJid(value === '__default__' ? '' : value)
-        }
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent className={MODAL_SELECT_CONTENT_CLASS}>
-          {(!isScript || defaultWorkspaceMode === 'host') && (
-            <SelectItem value="__default__">默认工作区</SelectItem>
-          )}
-          {(isScript ? scriptGroupEntries : sortedGroupEntries).map(
-            ([jid, name]) => (
-              <SelectItem key={jid} value={jid}>
-                {formatGroupLabel(jid, name)}
-              </SelectItem>
-            ),
-          )}
-        </SelectContent>
-      </Select>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {isScript
-          ? '脚本仅可选择管理员宿主机工作区，并直接在该宿主机目录中执行。'
-          : '任务会在这个工作区的目录和环境中执行，并继承该工作区的智能体。'}
-      </p>
-    </div>
-  );
+  const renderTargetWorkspace = () =>
+    !fixedChatJid && (
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          所属工作区
+        </label>
+        <Select
+          value={chatJid || '__default__'}
+          onValueChange={(value) =>
+            setChatJid(value === '__default__' ? '' : value)
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className={MODAL_SELECT_CONTENT_CLASS}>
+            {(!isScript || defaultWorkspaceMode === 'host') && (
+              <SelectItem value="__default__">默认工作区</SelectItem>
+            )}
+            {(isScript ? scriptGroupEntries : sortedGroupEntries).map(
+              ([jid, name]) => (
+                <SelectItem key={jid} value={jid}>
+                  {formatGroupLabel(jid, name)}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {isScript
+            ? '脚本仅可选择管理员宿主机工作区，并直接在该宿主机目录中执行。'
+            : '任务会在这个工作区的目录和环境中执行，并继承该工作区的智能体。'}
+        </p>
+      </div>
+    );
 
   const renderContextMode = () => (
     <div>
@@ -383,12 +387,38 @@ export function CreateTaskForm({
   );
 
   return (
-    <div className="fixed inset-0 z-[11000] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
-      <div className="flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-xl bg-card shadow-xl sm:max-h-[90vh] sm:rounded-xl">
+    <div
+      className={
+        fixedChatJid
+          ? undefined
+          : 'fixed inset-0 z-[11000] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4'
+      }
+    >
+      <div
+        className={cn(
+          'flex w-full flex-col',
+          !fixedChatJid &&
+            'max-h-[94vh] max-w-2xl overflow-hidden rounded-t-xl bg-card shadow-xl sm:max-h-[90vh] sm:rounded-xl',
+        )}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h2 className="text-xl font-bold text-foreground">创建定时任务</h2>
+        <div
+          className={cn(
+            'flex items-center justify-between border-b border-border',
+            fixedChatJid ? 'pb-2' : 'p-6',
+          )}
+        >
+          <h2
+            className={cn(
+              'text-foreground',
+              fixedChatJid ? 'font-medium' : 'text-xl font-bold',
+            )}
+          >
+            创建定时任务
+          </h2>
           <button
+            type="button"
+            aria-label="关闭创建任务"
             onClick={onClose}
             className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
           >
@@ -481,7 +511,7 @@ export function CreateTaskForm({
             className="space-y-4 overflow-y-auto p-4 sm:p-6"
           >
             {/* Execution Type */}
-            {isAdmin && (
+            {isAdmin && !fixedChatJid && (
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   执行方式
@@ -512,7 +542,7 @@ export function CreateTaskForm({
             )}
 
             {/* Execution Mode */}
-            {isAdmin && (
+            {isAdmin && !fixedChatJid && (
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   执行模式
